@@ -1,10 +1,10 @@
 # Site settings
-title: CS6225 Spring 2020
+title: CS6225 Spring 2021
 subtitle: Programs and Proofs
-baseurl: "/cs6225_s20_iitm" # the subpath of your site, e.g. /blog/
+baseurl: "/cs6225_s21_iitm" # the subpath of your site, e.g. /blog/
 url: "http://kayceesrk.github.io" # the base hostname & protocol for your site
 syllabus: "http://www.cse.iitm.ac.in/course_details.php?arg=MTk="
-githubdir: "kayceesrk/cs6225_s20_iitm"
+githubdir: "kayceesrk/cs6225_s21_iitm"
 
 # Author/user information
 email: kcsrk@iitm.ac.in
