@@ -11,9 +11,6 @@ under `assignments/pset*`.
 All assignments should be submitted through the [course
 moodle](https://courses.iitm.ac.in/course/view.php?id=5339). 
 
-| Problem Set | Released | Due Date | Topic |
-|------------:|----------|----------|-------|
-
 <br/>
 
 ## Assignment late penalties
