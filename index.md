@@ -56,7 +56,7 @@ Proofs](https://blog.sigplan.org/2019/09/12/program-verification-has-it-lost-its
 
 ## Class info
 
-Location: ~CS26~ [Google Meet](http://meet.google.com/tmf-zuca-abs)
+Location: ~~CS26~~ [Google Meet](http://meet.google.com/tmf-zuca-abs)
 
 Time: 
   * M 1100 - 1150
