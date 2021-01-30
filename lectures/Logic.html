@@ -1,0 +1,3069 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<link href="coqdoc.css" rel="stylesheet" type="text/css" />
+<title>Logic</title>
+</head>
+
+<body>
+
+<div id="page">
+
+<div id="header">
+</div>
+
+<div id="main">
+
+<h1 class="libtitle">Library Logic</h1>
+
+<div class="code">
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+<a name="lab1"></a><h1 class="section">Logic in Coq</h1>
+
+
+<div class="paragraph"> </div>
+
+  From: https://www.cs.cornell.edu/courses/cs3110/2018sp/l/20-coq-logic/notes.v 
+<hr/>
+
+<i>
+Topics:
+
+<div class="paragraph"> </div>
+
+<ul class="doclist">
+<li> propositions and proofs
+
+</li>
+<li> <span class="inlinecode"><span class="id" title="keyword">Prop</span></span> and <span class="inlinecode"><span class="id" title="keyword">Set</span></span>
+
+</li>
+<li> propositional logic
+
+</li>
+<li> implication
+
+</li>
+<li> conjunction
+
+</li>
+<li> disjunction
+
+</li>
+<li> <span class="inlinecode"><span class="id" title="var">False</span></span> and <span class="inlinecode"><span class="id" title="var">True</span></span>
+
+</li>
+<li> negation
+
+</li>
+<li> equality and implication revisited
+
+</li>
+<li> tautologies
+
+</li>
+</ul>
+
+<div class="paragraph"> </div>
+
+</i>
+<hr/>
+
+
+<div class="paragraph"> </div>
+
+
+<div class="paragraph"> </div>
+
+<a name="lab2"></a><h2 class="section">Propositions and proofs</h2>
+
+
+<div class="paragraph"> </div>
+
+Recall that the <span class="inlinecode"><span class="id" title="keyword">Check</span></span> command type checks an expression and causes Coq
+to output the type in the output window. 
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Check</span> <span class="id" title="var">list</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+The type of <span class="inlinecode"><span class="id" title="var">list</span></span> is <span class="inlinecode"><span class="id" title="keyword">Type</span></span> <span class="inlinecode">-&gt;</span> <span class="inlinecode"><span class="id" title="keyword">Type</span></span>.  It takes a type as input and produces
+a type as output.  Thus, like OCaml's <span class="inlinecode"><span class="id" title="var">list</span></span>, Coq's <span class="inlinecode"><span class="id" title="var">list</span></span> is a type
+constructor. But unlike OCaml, the type of Coq's <span class="inlinecode"><span class="id" title="var">list</span></span> contains <span class="inlinecode">-&gt;</span>,
+indicating that it is a function.  In Coq, <span class="inlinecode"><span class="id" title="var">list</span></span> truly is a function that can
+be applied: 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">natlist</span> : <span class="id" title="keyword">Type</span> := <span class="id" title="var">list</span> <span class="id" title="var">nat</span>.<br/>
+<span class="id" title="keyword">Check</span> <span class="id" title="var">natlist</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Think of Coq's <span class="inlinecode"><span class="id" title="var">list</span></span> as a <i>type-level function</i>:  it is a function that takes
+types as inputs and produces types as outputs.  OCaml doesn't have anything
+exactly equivalent to that.  
+
+<div class="paragraph"> </div>
+
+What, then, is the type of a theorem?
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">obvious_fact</span> : 1 + 1 = 2.<br/>
+<span class="id" title="keyword">Proof</span>. <span class="id" title="tactic">trivial</span>. <span class="id" title="keyword">Qed</span>.<br/>
+<span class="id" title="keyword">Check</span> <span class="id" title="var">obvious_fact</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Coq responds:
+<pre>
+obvious_fact : 1 + 1 = 2
+</pre>
+
+<div class="paragraph"> </div>
+
+So the type of <span class="inlinecode"><span class="id" title="var">obvious_fact</span></span> is <span class="inlinecode">1</span> <span class="inlinecode">+</span> <span class="inlinecode">1</span> <span class="inlinecode">=</span> <span class="inlinecode">2</span>.  That might seem rather
+mysterious. After all, <span class="inlinecode">1</span> <span class="inlinecode">+</span> <span class="inlinecode">1</span> <span class="inlinecode">=</span> <span class="inlinecode">2</span> is definitely not an OCaml type.  But Coq's
+type system is far richer than OCaml's.  In OCaml, we could think of <span class="inlinecode">42</span> <span class="inlinecode">:</span> <span class="inlinecode"><span class="id" title="var">int</span></span>
+as meaning that <span class="inlinecode">42</span> is a <i>meaningful</i> expression of type <span class="inlinecode"><span class="id" title="var">int</span></span>.  There are
+likewise <i>meaningless</i> expressions---for example, <span class="inlinecode">42+<span class="id" title="var">true</span></span> is meaningless in
+OCaml, and it therefore cannot be given a type.  The meaning of <span class="inlinecode"><span class="id" title="var">int</span></span> in OCaml
+is that of a computation producing a value that fits within 2^63 bits and can be
+interpreted as an element of Z, the mathematical set of integers.  
+
+<div class="paragraph"> </div>
+
+So what are meaningful Coq expressions of type <span class="inlinecode">1</span> <span class="inlinecode">+</span> <span class="inlinecode">2</span> <span class="inlinecode">=</span> <span class="inlinecode">2</span>?  They are the
+<i>proofs</i> of <span class="inlinecode">1</span> <span class="inlinecode">+</span> <span class="inlinecode">1</span> <span class="inlinecode">=</span> <span class="inlinecode">2</span>.  There might be many such proofs; here are two: 
+
+<div class="paragraph"> </div>
+
+<ul class="doclist">
+<li> reduce <span class="inlinecode">1+1</span> to <span class="inlinecode">2</span>, then note that <span class="inlinecode"><span class="id" title="var">x</span>=<span class="id" title="var">x</span></span>. 
+
+<div class="paragraph"> </div>
+
+
+</li>
+<li> subtract <span class="inlinecode">1</span> from both sides, resulting in <span class="inlinecode">1</span> <span class="inlinecode">+</span> <span class="inlinecode">1</span> <span class="inlinecode">-</span> <span class="inlinecode">1</span> <span class="inlinecode">=</span> <span class="inlinecode">2</span> <span class="inlinecode">-</span> <span class="inlinecode">1</span>, reduce both 
+  sides to <span class="inlinecode">1</span>, then note that <span class="inlinecode"><span class="id" title="var">x</span></span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">x</span></span>. 
+
+</li>
+</ul>
+
+<div class="paragraph"> </div>
+
+Regardless of the exact proof, it is an <i>argument</i> for, or <i>evidence</i> for, the
+assertion that <span class="inlinecode">1</span> <span class="inlinecode">+</span> <span class="inlinecode">1</span> <span class="inlinecode">=</span> <span class="inlinecode">2</span>.  So when we say that <span class="inlinecode"><span class="id" title="var">obvious_fact</span></span> <span class="inlinecode">:</span> <span class="inlinecode">1</span> <span class="inlinecode">+</span> <span class="inlinecode">1</span> <span class="inlinecode">=</span> <span class="inlinecode">2</span>,
+what we're really saying is that <span class="inlinecode"><span class="id" title="var">obvious_fact</span></span> is a proof of <span class="inlinecode">1</span> <span class="inlinecode">+</span> <span class="inlinecode">1</span> <span class="inlinecode">=</span> <span class="inlinecode">2</span>.
+
+<div class="paragraph"> </div>
+
+Likewise, when we write <span class="inlinecode"><span class="id" title="keyword">Definition</span></span> <span class="inlinecode"><span class="id" title="var">x</span></span> <span class="inlinecode">:=</span> <span class="inlinecode">42.</span> in Coq, and then observe that <span class="inlinecode"><span class="id" title="var">x</span></span> <span class="inlinecode">:</span>
+<span class="inlinecode"><span class="id" title="var">nat</span></span>, what we're saying is not just that <span class="inlinecode"><span class="id" title="var">x</span></span> has type <span class="inlinecode"><span class="id" title="var">nat</span></span>, but also that there
+is <i>evidence</i> for the type <span class="inlinecode"><span class="id" title="var">nat</span></span>, i.e., that there do exist values of that type.
+Many of them, in fact---just like there are many proofs of <span class="inlinecode">1</span> <span class="inlinecode">+</span> <span class="inlinecode">1</span> <span class="inlinecode">=</span> <span class="inlinecode">2</span>.
+
+<div class="paragraph"> </div>
+
+So now we have an explanation for what the type of <span class="inlinecode"><span class="id" title="var">obvious_fact</span></span> is. But what
+is its value?  Let's ask Coq.
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Print</span> <span class="id" title="var">obvious_fact</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Coq responds:
+<pre>
+obvious_fact = eq_refl : 1 + 1 = 2
+</pre>
+So what is <span class="inlinecode"><span class="id" title="var">eq_refl</span></span>?
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Print</span> <span class="id" title="var">eq_refl</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Amidst all the output that produces, you will spy 
+<pre>
+eq_refl : x = x 
+</pre>
+That is, <span class="inlinecode"><span class="id" title="var">eq_refl</span></span> has type <span class="inlinecode"><span class="id" title="var">x</span></span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">x</span></span>.  In other words, <span class="inlinecode"><span class="id" title="var">eq_refl</span></span> asserts
+something is always equal to itself, a property known as the <i>reflexivity of
+equality</i>.
+
+<div class="paragraph"> </div>
+
+So the proof of <span class="inlinecode">1</span> <span class="inlinecode">+</span> <span class="inlinecode">1</span> <span class="inlinecode">=</span> <span class="inlinecode">2</span> in Coq is really just that equality
+is reflexive.  It turns out that Coq evaluates expressions before applying that
+fact, so it evaluates <span class="inlinecode">1+1</span> to <span class="inlinecode">2</span>, resulting in <span class="inlinecode">2</span> <span class="inlinecode">=</span> <span class="inlinecode">2</span>, which holds by
+reflexivity.  Thus the proof we found above, using the <span class="inlinecode"><span class="id" title="tactic">trivial</span></span> tactic,
+corresponds to the first of the two possible proofs we sketched.
+
+<div class="paragraph"> </div>
+
+
+<div class="paragraph"> </div>
+
+
+<div class="paragraph"> </div>
+
+<a name="lab3"></a><h2 class="section"><span class="inlinecode"><span class="id" title="keyword">Prop</span></span> and <span class="inlinecode"><span class="id" title="keyword">Set</span></span></h2>
+
+
+<div class="paragraph"> </div>
+
+We've now seen that there are programs and proofs in Coq.  Let's investigate
+their types.  We already know that <span class="inlinecode">42</span>, a program, has type <span class="inlinecode"><span class="id" title="var">nat</span></span>, and that
+<span class="inlinecode"><span class="id" title="var">eq_refl</span></span> <span class="inlinecode">:</span> <span class="inlinecode">1</span> <span class="inlinecode">+</span> <span class="inlinecode">1</span> <span class="inlinecode">=</span> <span class="inlinecode">2</span>.  But let's now investigate what the types of <span class="inlinecode"><span class="id" title="var">nat</span></span> and <span class="inlinecode">1</span>
+<span class="inlinecode">+</span> <span class="inlinecode">1</span> <span class="inlinecode">=</span> <span class="inlinecode">2</span> are.  First, <span class="inlinecode"><span class="id" title="var">nat</span></span>:
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Check</span> <span class="id" title="var">nat</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Coq says that <span class="inlinecode"><span class="id" title="var">nat</span></span> <span class="inlinecode">:</span> <span class="inlinecode"><span class="id" title="keyword">Set</span></span>.  Here, <span class="inlinecode"><span class="id" title="keyword">Set</span></span> is a predefined keyword in Coq that we
+can think of as meaning all program data types.  Further, we can ask what the
+type of <span class="inlinecode"><span class="id" title="keyword">Set</span></span> is:
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Check</span> <span class="id" title="keyword">Set</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+Coq says that <span class="inlinecode"><span class="id" title="keyword">Set</span></span> <span class="inlinecode">:</span> <span class="inlinecode"><span class="id" title="keyword">Type</span></span>, so <span class="inlinecode"><span class="id" title="keyword">Set</span></span> is a type.  The Coq documentation
+describes <span class="inlinecode"><span class="id" title="keyword">Set</span></span> as being the type of <i>program specifications</i>, which describe
+computations.  For example, 
+
+<div class="paragraph"> </div>
+
+<ul class="doclist">
+<li> <span class="inlinecode">42</span> specifies a computation that simply returns <span class="inlinecode">42</span>.  It's a specification
+  because <span class="inlinecode">42</span> <span class="inlinecode">:</span> <span class="inlinecode"><span class="id" title="var">nat</span></span> and <span class="inlinecode"><span class="id" title="var">nat</span></span> <span class="inlinecode">:</span> <span class="inlinecode"><span class="id" title="keyword">Set</span></span>.
+
+<div class="paragraph"> </div>
+
+
+</li>
+<li> <span class="inlinecode"><span class="id" title="keyword">fun</span></span> <span class="inlinecode"><span class="id" title="var">x</span>:<span class="id" title="var">nat</span></span> <span class="inlinecode">=&gt;</span> <span class="inlinecode"><span class="id" title="var">x</span>+1</span> specifies a computation that increments a natural number.
+  It's a specification because it has type <span class="inlinecode"><span class="id" title="var">nat</span></span> <span class="inlinecode">-&gt;</span> <span class="inlinecode"><span class="id" title="var">nat</span></span>, and <span class="inlinecode"><span class="id" title="var">nat</span></span> <span class="inlinecode">-&gt;</span> <span class="inlinecode"><span class="id" title="var">nat</span></span> <span class="inlinecode">:</span> <span class="inlinecode"><span class="id" title="keyword">Set</span></span>.
+
+<div class="paragraph"> </div>
+
+
+</li>
+<li> We could also write more complicated specifications to express computations
+  such as list sorting functions, or binary search tree lookups.
+
+</li>
+</ul>
+
+<div class="paragraph"> </div>
+
+Next, let's investigate what the type of <span class="inlinecode">1</span> <span class="inlinecode">+</span> <span class="inlinecode">1</span> <span class="inlinecode">=</span> <span class="inlinecode">2</span> is.
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Check</span> 1 + 1 = 2.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Coq says that <span class="inlinecode">1</span> <span class="inlinecode">+</span> <span class="inlinecode">1</span> <span class="inlinecode">=</span> <span class="inlinecode">2</span> <span class="inlinecode">:</span> <span class="inlinecode"><span class="id" title="keyword">Prop</span></span>.  This is the type of <i>propositions</i>, which are
+logical formulas that we can attempt to prove.  Note that propositions are not
+necessarily provable though. For example, <span class="inlinecode">2110</span> <span class="inlinecode">=</span> <span class="inlinecode">3110</span> has type <span class="inlinecode"><span class="id" title="keyword">Prop</span></span>, even
+though it obviously does not hold. What is the type of <span class="inlinecode"><span class="id" title="keyword">Prop</span></span>?
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Check</span> <span class="id" title="keyword">Prop</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Coq says that <span class="inlinecode"><span class="id" title="keyword">Prop</span></span> <span class="inlinecode">:</span> <span class="inlinecode"><span class="id" title="keyword">Type</span></span>.  So <span class="inlinecode"><span class="id" title="keyword">Prop</span></span> is also a type.  So far we have seen one
+way of creating a proposition, by using the equality operator.  We could attempt
+to learn more about that operator with <span class="inlinecode"><span class="id" title="keyword">Check</span></span> <span class="inlinecode">=.</span>, but that will result in an
+error:  <span class="inlinecode"><span class="id" title="keyword">Check</span></span> doesn't work on this kind of notation, and there isn't something
+like in OCaml where we can wrap an operator in parentheses.  Instead, we need to
+find out what function name that operator corresponds to.  The command for that
+is <span class="inlinecode"><span class="id" title="keyword">Locate</span></span>.
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Locate</span> "=".<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Coq tells us two possible meanings for <span class="inlinecode">=</span>, and the second is what we want: 
+<pre>
+"x = y" := eq x y
+</pre>
+That means that anywhere <span class="inlinecode"><span class="id" title="var">x</span></span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">y</span></span> appears, Coq understands it as the function
+<span class="inlinecode"><span class="id" title="var">eq</span></span> applied to <span class="inlinecode"><span class="id" title="var">x</span></span> and <span class="inlinecode"><span class="id" title="var">y</span></span>.  Now that we know the name of that function, we can
+check it:
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Check</span> <span class="id" title="var">eq</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+The output of that is a bit mysterious because of the <span class="inlinecode">?<span class="id" title="var">A</span></span> that shows up in it.
+What's going on is that <span class="inlinecode"><span class="id" title="var">eq</span></span> has an implicit type argument.  (Implicit arguments
+were discussed in the previous set of notes.)  If we prefix <span class="inlinecode"><span class="id" title="var">eq</span></span> with <span class="inlinecode">@</span> to
+treat the argument as explicit, we can get more readable output.
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Check</span> @<span class="id" title="var">eq</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Coq says that 
+<pre>
+@eq : forall A : Type, A -&gt; A -&gt; Prop
+</pre>
+In other words, <span class="inlinecode">@<span class="id" title="var">eq</span></span> takes a type argument <span class="inlinecode"><span class="id" title="var">A</span></span>, a value of type <span class="inlinecode"><span class="id" title="var">A</span></span>, another
+value of type <span class="inlinecode"><span class="id" title="var">A</span></span>, and returns a proposition, which is the proposition asserting
+the equality of those two values. So:
+
+<div class="paragraph"> </div>
+
+<ul class="doclist">
+<li> <span class="inlinecode">@<span class="id" title="var">eq</span></span> <span class="inlinecode"><span class="id" title="var">nat</span></span> <span class="inlinecode">42</span> <span class="inlinecode">42</span> asserts the equality of <span class="inlinecode">42</span> and <span class="inlinecode">42</span>, i.e., <span class="inlinecode">42</span> <span class="inlinecode">=</span> <span class="inlinecode">42</span>.  So 
+  does <span class="inlinecode"><span class="id" title="var">eq</span></span> <span class="inlinecode">42</span> <span class="inlinecode">42</span>, where <span class="inlinecode"><span class="id" title="var">nat</span></span> is implicit.
+
+<div class="paragraph"> </div>
+
+
+</li>
+<li> <span class="inlinecode">@<span class="id" title="var">eq</span></span> <span class="inlinecode"><span class="id" title="var">nat</span></span> <span class="inlinecode">2110</span> <span class="inlinecode">3110</span> asserts the equality of <span class="inlinecode">2110</span> and <span class="inlinecode">3110</span>.  
+  So does <span class="inlinecode"><span class="id" title="var">eq</span></span> <span class="inlinecode">2110</span> <span class="inlinecode">3110</span> and <span class="inlinecode">2110=3110</span>.  Of course they aren't equal, but
+  we're still allowed to form such a proposition, even if it isn't provable.
+
+<div class="paragraph"> </div>
+
+
+</li>
+<li> <span class="inlinecode">@<span class="id" title="var">eq</span></span> <span class="inlinecode">(<span class="id" title="var">nat</span>-&gt;<span class="id" title="var">nat</span>)</span> <span class="inlinecode">(<span class="id" title="keyword">fun</span></span> <span class="inlinecode"><span class="id" title="var">x</span></span> <span class="inlinecode">=&gt;</span> <span class="inlinecode"><span class="id" title="var">x</span>+1)</span> <span class="inlinecode">(<span class="id" title="keyword">fun</span></span> <span class="inlinecode"><span class="id" title="var">n</span></span> <span class="inlinecode">=&gt;</span> <span class="inlinecode">1+<span class="id" title="var">n</span>)</span> asserts the equality of two 
+  syntactically different increment functions, as does <span class="inlinecode"><span class="id" title="var">eq</span></span> <span class="inlinecode">(<span class="id" title="keyword">fun</span></span> <span class="inlinecode"><span class="id" title="var">x</span></span> <span class="inlinecode">=&gt;</span> <span class="inlinecode"><span class="id" title="var">x</span>+1)</span> 
+  <span class="inlinecode">(<span class="id" title="keyword">fun</span></span> <span class="inlinecode"><span class="id" title="var">n</span></span> <span class="inlinecode">=&gt;</span> <span class="inlinecode">1+<span class="id" title="var">n</span>)</span> and <span class="inlinecode">(<span class="id" title="keyword">fun</span></span> <span class="inlinecode"><span class="id" title="var">x</span></span> <span class="inlinecode">=&gt;</span> <span class="inlinecode"><span class="id" title="var">x</span>+1)</span> <span class="inlinecode">=</span> <span class="inlinecode">(<span class="id" title="keyword">fun</span></span> <span class="inlinecode"><span class="id" title="var">x</span></span> <span class="inlinecode">=&gt;</span> <span class="inlinecode">1+<span class="id" title="var">n</span>)</span>.
+
+</li>
+</ul>
+
+<div class="paragraph"> </div>
+
+
+<div class="paragraph"> </div>
+
+
+<div class="paragraph"> </div>
+
+
+<div class="paragraph"> </div>
+
+<a name="lab4"></a><h2 class="section">Propositional logic</h2>
+
+
+<div class="paragraph"> </div>
+
+The standard propositional logic <i>connectives</i> (ways of syntactically connecting
+propositions together) are:
+
+<div class="paragraph"> </div>
+
+<ul class="doclist">
+<li> Implication: <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">-&gt;</span> <span class="inlinecode"><span class="id" title="var">Q</span></span>.  In English we usually express this connective as 
+   "if <span class="inlinecode"><span class="id" title="var">P</span></span>, then <span class="inlinecode"><span class="id" title="var">Q</span></span>" or "P implies Q".
+
+<div class="paragraph"> </div>
+
+
+</li>
+<li> Conjunction: <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">/\</span> <span class="inlinecode"><span class="id" title="var">Q</span></span>.  In English we usually express this connective as
+  "P and Q".
+
+<div class="paragraph"> </div>
+
+
+</li>
+<li> Disjunction: <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">\/</span> <span class="inlinecode"><span class="id" title="var">Q</span></span>.  In English we usually express this connective as
+  "P or Q".  Keep in mind that this is the sense of the word "or" that
+  allows one or both of <span class="inlinecode"><span class="id" title="var">P</span></span> and <span class="inlinecode"><span class="id" title="var">Q</span></span> to hold, rather than exactly one.
+
+<div class="paragraph"> </div>
+
+
+</li>
+<li> Negation: <span class="inlinecode">~<span class="id" title="var">P</span></span>.  In English we usually express this connective as
+  "not P".
+
+</li>
+</ul>
+
+<div class="paragraph"> </div>
+
+All of these are ways of creating propositions in Coq.  Implication is so
+primitive that it's simply "baked in" to Coq.  But the other connectives are
+defined as part of Coq's standard library under the very natural names of <span class="inlinecode"><span class="id" title="var">and</span></span>,
+<span class="inlinecode"><span class="id" title="var">or</span></span>, and <span class="inlinecode"><span class="id" title="var">not</span></span>.
+
+<div class="paragraph"> </div>
+
+In addition to those connectives, there are two propositions <span class="inlinecode"><span class="id" title="var">True</span></span> and
+<span class="inlinecode"><span class="id" title="var">False</span></span> which always and never hold, respectively.  And we can have
+variables representing propositions.  Idiomatically, we usually choose
+names like <span class="inlinecode"><span class="id" title="var">P</span></span>, <span class="inlinecode"><span class="id" title="var">Q</span></span>, <span class="inlinecode"><span class="id" title="var">R</span></span>, ... for those variables.
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Check</span> <span class="id" title="var">and</span>.<br/>
+<span class="id" title="keyword">Check</span> <span class="id" title="var">or</span>.<br/>
+<span class="id" title="keyword">Check</span> <span class="id" title="var">not</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<pre>
+and : Prop -&gt; Prop -&gt; Prop
+or  : Prop -&gt; Prop -&gt; Prop
+not : Prop -&gt; Prop
+</pre>
+Both <span class="inlinecode"><span class="id" title="var">and</span></span> and <span class="inlinecode"><span class="id" title="var">or</span></span> take two propositions as input and return a proposition;
+<span class="inlinecode"><span class="id" title="var">not</span></span> takes one proposition as input and returns a proposition.
+
+<div class="paragraph"> </div>
+
+At this point, you might have noticed that <span class="inlinecode">-&gt;</span> seems to be overloaded:
+
+<div class="paragraph"> </div>
+
+<ul class="doclist">
+<li> <span class="inlinecode"><span class="id" title="var">t1</span></span> <span class="inlinecode">-&gt;</span> <span class="inlinecode"><span class="id" title="var">t2</span></span> is the type of functions that take an input of type <span class="inlinecode"><span class="id" title="var">t1</span></span> and 
+  return an output of type <span class="inlinecode"><span class="id" title="var">t2</span></span>.
+
+<div class="paragraph"> </div>
+
+
+</li>
+<li> <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">-&gt;</span> <span class="inlinecode"><span class="id" title="var">Q</span></span> is an proposition that asserts <span class="inlinecode"><span class="id" title="var">P</span></span> implies <span class="inlinecode"><span class="id" title="var">Q</span></span>.
+
+</li>
+</ul>
+
+<div class="paragraph"> </div>
+
+There is a uniform way to think about both uses of <span class="inlinecode">-&gt;</span>, which is as a
+<i>transformer</i>.  A function of type <span class="inlinecode"><span class="id" title="var">t1</span></span> <span class="inlinecode">-&gt;</span> <span class="inlinecode"><span class="id" title="var">t2</span></span> transforms a value of type <span class="inlinecode"><span class="id" title="var">t1</span></span>
+into a value of type <span class="inlinecode"><span class="id" title="var">t2</span></span>.  An implication <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">-&gt;</span> <span class="inlinecode"><span class="id" title="var">Q</span></span> in a way transforms <span class="inlinecode"><span class="id" title="var">P</span></span> into
+<span class="inlinecode"><span class="id" title="var">Q</span></span>: if <span class="inlinecode"><span class="id" title="var">P</span></span> holds, then <span class="inlinecode"><span class="id" title="var">Q</span></span> also holds; or better yet, a proof of <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">-&gt;</span> <span class="inlinecode"><span class="id" title="var">Q</span></span> can 
+be thought of as a function that transforms evidence for <span class="inlinecode"><span class="id" title="var">P</span></span> into evidence for 
+<span class="inlinecode"><span class="id" title="var">Q</span></span>.
+
+<div class="paragraph"> </div>
+
+Let's do some proofs with these connectives to get a better sense of
+how they work.
+
+<div class="paragraph"> </div>
+
+
+<div class="paragraph"> </div>
+
+<a name="lab5"></a><h2 class="section">Implication</h2>
+
+
+<div class="paragraph"> </div>
+
+Let's try one of the simplest possible theorems we could prove using
+implication:  P implies P.
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">p_implies_p</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">P</span>:<span class="id" title="keyword">Prop</span>, <span class="id" title="var">P</span> -&gt; <span class="id" title="var">P</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+That proposition says that for any proposition <span class="inlinecode"><span class="id" title="var">P</span></span>, it holds that <span class="inlinecode"><span class="id" title="var">P</span></span> implies
+<span class="inlinecode"><span class="id" title="var">P</span></span>.
+
+<div class="paragraph"> </div>
+
+Intuitively, why should be able able to prove this proposition?  That is, what
+is an argument you could give to another human?  We always encourage you to try
+to answer that question before launching into a Coq proof---for the same reason
+your introductory programming instructor always encouraged you to think about
+programs before you begin typing them.
+
+<div class="paragraph"> </div>
+
+So why does this proposition hold?  It's rather trivial, really.  If <span class="inlinecode"><span class="id" title="var">P</span></span> holds,
+then certainly <span class="inlinecode"><span class="id" title="var">P</span></span> holds.  That is, <span class="inlinecode"><span class="id" title="var">P</span></span> implies itself. An example in English
+could be "if 6225 is fun, then 6225 is fun." If you've already assumed <span class="inlinecode"><span class="id" title="var">P</span></span>, then
+necessarily <span class="inlinecode"><span class="id" title="var">P</span></span> follows from your assumptions:  that's what it means to be an
+assumption.  
+
+<div class="paragraph"> </div>
+
+The Coq proof below uses that reasoning. 
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">P</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">P_assumed</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">assumption</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+The second step, <span class="inlinecode"><span class="id" title="tactic">intros</span></span> <span class="inlinecode"><span class="id" title="var">P_assumed</span></span>, is a new use for the <span class="inlinecode"><span class="id" title="tactic">intros</span></span> tactic.
+This usage peels off the left-hand side of an implication and puts it into the
+proof assumptions.  The third step, <span class="inlinecode"><span class="id" title="tactic">assumption</span></span> is a new tactic. It finishes a
+proof of a subgoal <span class="inlinecode"><span class="id" title="var">G</span></span> whenever <span class="inlinecode"><span class="id" title="var">G</span></span> is already an assumption in the proof. 
+
+<div class="paragraph"> </div>
+
+Let's look at the type of <span class="inlinecode"><span class="id" title="var">p_implies_p</span></span>.
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Check</span> <span class="id" title="var">p_implies_p</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Coq says <span class="inlinecode"><span class="id" title="var">p_implies_p</span></span> <span class="inlinecode">:</span> <span class="inlinecode"><span class="id" title="keyword">forall</span></span> <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">:</span> <span class="inlinecode"><span class="id" title="keyword">Prop</span>,</span> <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">-&gt;</span> <span class="inlinecode"><span class="id" title="var">P</span></span>.  So <span class="inlinecode"><span class="id" title="var">p_implies_p</span></span> is proof
+of, or evidence for, <span class="inlinecode"><span class="id" title="keyword">forall</span></span> <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">:</span> <span class="inlinecode"><span class="id" title="keyword">Prop</span>,</span> <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">-&gt;</span> <span class="inlinecode"><span class="id" title="var">P</span></span>, as we discussed above.
+What is that evidence?  We can use <span class="inlinecode"><span class="id" title="keyword">Print</span></span> to find out:
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Print</span> <span class="id" title="var">p_implies_p</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+Coq responds
+<pre>
+p_implies_p = 
+fun (P : Prop) (P_assumed : P) =&gt; P_assumed
+     : forall P : Prop, P -&gt; P
+</pre>
+
+<div class="paragraph"> </div>
+
+Let's pull that apart.  Coq says that <span class="inlinecode"><span class="id" title="var">p_implies_p</span></span> is a name that is 
+bound to a value and has a type.  The type we already know.  The value
+is perhaps surprising:  it is a function!  Actually, maybe it shouldn't
+be surprising given the discussion we had above about transformers.
+<span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">-&gt;</span> <span class="inlinecode"><span class="id" title="var">P</span></span> should transform evidence for <span class="inlinecode"><span class="id" title="var">P</span></span> into evidence for <span class="inlinecode"><span class="id" title="var">P</span></span>.  Trivially,
+evidence for <span class="inlinecode"><span class="id" title="var">P</span></span> already <i>is</i> evidence for <span class="inlinecode"><span class="id" title="var">P</span></span>, so there's nothing to be done.
+And we can see that in the function itself:
+
+<div class="paragraph"> </div>
+
+<ul class="doclist">
+<li> it takes in an argument named <span class="inlinecode"><span class="id" title="var">P</span></span>, which is the proposition; and
+
+<div class="paragraph"> </div>
+
+
+</li>
+<li> it takes in another argument named <span class="inlinecode"><span class="id" title="var">P_assumed</span></span> of type <span class="inlinecode"><span class="id" title="var">P</span></span>.  Since
+  <span class="inlinecode"><span class="id" title="var">P_assumed</span></span> has a proposition as type, <span class="inlinecode"><span class="id" title="var">P_assumed</span></span> must be evidence
+  for that proposition.
+
+<div class="paragraph"> </div>
+
+
+</li>
+<li> the function simply returns <span class="inlinecode"><span class="id" title="var">P_assumed</span></span>.  That is, it returns the
+  evidence for <span class="inlinecode"><span class="id" title="var">P</span></span> that was already passed into it as an argument.
+
+</li>
+</ul>
+
+<div class="paragraph"> </div>
+
+Note that the names of the arguments to that function are the names
+that we chose with the <span class="inlinecode"><span class="id" title="tactic">intros</span></span> tactic.  
+
+<div class="paragraph"> </div>
+
+Let's clarify a subtle piece of terminology, "proof".  The proof of
+<span class="inlinecode"><span class="id" title="keyword">forall</span></span> <span class="inlinecode"><span class="id" title="var">P</span>:<span class="id" title="keyword">Prop</span>,</span> <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">-&gt;</span> <span class="inlinecode"><span class="id" title="var">P</span></span> is the anonymous function <span class="inlinecode"><span class="id" title="keyword">fun</span></span> <span class="inlinecode">(<span class="id" title="var">P</span></span> <span class="inlinecode">:</span> <span class="inlinecode"><span class="id" title="keyword">Prop</span>)</span> 
+<span class="inlinecode">(<span class="id" title="var">P_assumed</span></span> <span class="inlinecode">:</span> <span class="inlinecode"><span class="id" title="var">P</span>)</span> <span class="inlinecode">=&gt;</span> <span class="inlinecode"><span class="id" title="var">P_assumed</span></span> <span class="inlinecode"></span>.  That is, the proof of a proposition
+<span class="inlinecode"><span class="id" title="var">P</span></span> is a program that has type <span class="inlinecode"><span class="id" title="var">P</span></span>.  On the other hand, the commands
+we used above
+<pre>
+Proof.
+    intros P. 
+    intros P_assumed. 
+    assumption.
+Qed.
+</pre>
+are how we help Coq find that proof.  We provide guidance using tactics,
+and Coq uses those tactics to figure out how to construct the program.
+So although it's tempting to refer to <span class="inlinecode"><span class="id" title="tactic">intros</span></span> <span class="inlinecode"><span class="id" title="var">P</span>.</span> <span class="inlinecode"><span class="id" title="tactic">intros</span></span> <span class="inlinecode"><span class="id" title="var">P_assumed</span>.</span>
+<span class="inlinecode"><span class="id" title="tactic">assumption</span>.</span> as the "proof"---and we often will as a kind of shorthand
+terminology---the proof is really the program that is constructed, not
+the tactics that help do the construction.
+
+<div class="paragraph"> </div>
+
+It is, by the way, possible to just directly tell Coq what the proof is
+by using the command <span class="inlinecode"><span class="id" title="keyword">Definition</span></span>:
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">p_implies_p_direct</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">P</span>:<span class="id" title="keyword">Prop</span>, <span class="id" title="var">P</span> -&gt; <span class="id" title="var">P</span> := <br/>
+&nbsp;&nbsp;<span class="id" title="keyword">fun</span> <span class="id" title="var">p</span> <span class="id" title="var">ev_p</span> =&gt; <span class="id" title="var">ev_p</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+But rarely do we directly write down proofs, because for most propositions
+they are not so trivial.  Tactics are a huge help in constructing
+complicated proofs.
+
+<div class="paragraph"> </div>
+
+Let's try another theorem.  A <i>syllogism</i> is a classical form of argument
+that typically goes something like this:
+
+<div class="paragraph"> </div>
+
+<ul class="doclist">
+<li> All humans are mortal.
+
+<div class="paragraph"> </div>
+
+
+</li>
+<li> Socrates is a human.
+
+<div class="paragraph"> </div>
+
+
+</li>
+<li> Therefore Socrates is mortal.
+
+</li>
+</ul>
+
+<div class="paragraph"> </div>
+
+The first assumption in that proof, "all humans are mortal", is an implication:
+if X is a human, then X is mortal.  The second assumption is that
+Socrates is a human.  Putting those two assumptions together, we conclude
+that Socrates is mortal.
+
+<div class="paragraph"> </div>
+
+We can formalize that kind of reasoning as follows:
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">syllogism</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">P</span> <span class="id" title="var">Q</span> : <span class="id" title="keyword">Prop</span>, <br/>
+&nbsp;&nbsp;(<span class="id" title="var">P</span> -&gt; <span class="id" title="var">Q</span>) -&gt; <span class="id" title="var">P</span> -&gt; <span class="id" title="var">Q</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+How would you convince a human that this theorem holds?  By the same
+reasoning as above.  Assume that <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">-&gt;</span> <span class="inlinecode"><span class="id" title="var">Q</span></span>.  Also assume <span class="inlinecode"><span class="id" title="var">P</span></span>.  Since
+<span class="inlinecode"><span class="id" title="var">P</span></span> holds, and since <span class="inlinecode"><span class="id" title="var">P</span></span> implies <span class="inlinecode"><span class="id" title="var">Q</span></span>, we know that <span class="inlinecode"><span class="id" title="var">Q</span></span> must also hold.
+
+<div class="paragraph"> </div>
+
+The Coq proof below uses that style of argument.
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">P</span> <span class="id" title="var">Q</span> <span class="id" title="var">evPimpQ</span> <span class="id" title="var">evP</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">evPimpQ</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">assumption</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+The first line of the proof, <span class="inlinecode"><span class="id" title="tactic">intros</span></span> <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode"><span class="id" title="var">Q</span></span> <span class="inlinecode"><span class="id" title="var">evPimpQ</span></span> <span class="inlinecode"><span class="id" title="var">evP</span></span> introduces four
+assumptions.  The first two are the variables <span class="inlinecode"><span class="id" title="var">P</span></span> and <span class="inlinecode"><span class="id" title="var">Q</span></span>. The third is <span class="inlinecode"><span class="id" title="var">P</span>-&gt;<span class="id" title="var">Q</span></span>,
+which we give the name <span class="inlinecode"><span class="id" title="var">evPimpQ</span></span> as a human-readable hint that it is evidence
+that <span class="inlinecode"><span class="id" title="var">P</span></span> implies <span class="inlinecode"><span class="id" title="var">Q</span></span>. The fourth is <span class="inlinecode"><span class="id" title="var">P</span></span>, which we give the name <span class="inlinecode"><span class="id" title="var">evP</span></span> as a hint
+that we have assumed we have evidence for <span class="inlinecode"><span class="id" title="var">P</span></span>. 
+
+<div class="paragraph"> </div>
+
+The second line of the proof, <span class="inlinecode"><span class="id" title="tactic">apply</span></span> <span class="inlinecode"><span class="id" title="var">evPimpQ</span></span>, uses a new tactic <span class="inlinecode"><span class="id" title="tactic">apply</span></span> to
+apply the evidence that <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">-&gt;</span> <span class="inlinecode"><span class="id" title="var">Q</span></span> to the goal of the proof, which is <span class="inlinecode"><span class="id" title="var">Q</span></span>.  This
+transforms the goal to be <span class="inlinecode"><span class="id" title="var">P</span></span>.  Think of this as <i>backward reasoning</i>:  we know
+we want to show <span class="inlinecode"><span class="id" title="var">Q</span></span>, and since we have evidence that <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">-&gt;</span> <span class="inlinecode"><span class="id" title="var">Q</span></span>, we can work
+backward to conclude that if we could only show <span class="inlinecode"><span class="id" title="var">P</span></span>, then we'd be done.  
+
+<div class="paragraph"> </div>
+
+The third line concludes by pointing out to Coq that in fact we do
+already have evidence for <span class="inlinecode"><span class="id" title="var">P</span></span> as an assumption.
+
+<div class="paragraph"> </div>
+
+Let's look at the proof that these tactics cause Coq to create:
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Print</span> <span class="id" title="var">syllogism</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+We see that
+<pre>
+syllogism = 
+fun (P Q : Prop) (evPimpQ : P -&gt; Q) (evP : P) =&gt; evPimpQ evP
+     : forall P Q : Prop, (P -&gt; Q) -&gt; P -&gt; Q
+</pre>
+
+<div class="paragraph"> </div>
+
+Picking that apart, <span class="inlinecode"><span class="id" title="var">syllogism</span></span> is a function that takes four arguments.
+The third argument <span class="inlinecode"><span class="id" title="var">evPimpQ</span></span> is of type <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">-&gt;</span> <span class="inlinecode"><span class="id" title="var">Q</span></span>.  Going back to our reading
+of <span class="inlinecode">-&gt;</span> in different ways, we can think of <span class="inlinecode"><span class="id" title="var">evPimpQ</span></span> as 
+
+<div class="paragraph"> </div>
+
+<ul class="doclist">
+<li> a function that transforms something of type <span class="inlinecode"><span class="id" title="var">P</span></span> into something of type <span class="inlinecode"><span class="id" title="var">Q</span></span>,
+  or
+
+<div class="paragraph"> </div>
+
+
+</li>
+<li> evidence for <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">-&gt;</span> <span class="inlinecode"><span class="id" title="var">Q</span></span>,
+  or
+
+<div class="paragraph"> </div>
+
+
+</li>
+<li> a transformer that takes in evidence of <span class="inlinecode"><span class="id" title="var">P</span></span> and produces evidence of <span class="inlinecode"><span class="id" title="var">Q</span></span>.
+
+</li>
+</ul>
+
+<div class="paragraph"> </div>
+
+The deep point here is:  <i>all of these are really the same interpretation</i>.
+There's no difference between them.  The value <span class="inlinecode"><span class="id" title="var">evPimpQ</span></span> is a function, 
+and it is evidence, and it is an evidence transformer.  
+
+<div class="paragraph"> </div>
+
+We can see that <span class="inlinecode"><span class="id" title="var">evPimpQ</span></span> is being used as a function in the body 
+<span class="inlinecode"><span class="id" title="var">evPimpQ</span></span> <span class="inlinecode"><span class="id" title="var">evP</span></span> of the anonymous function, above.  It is applied to
+<span class="inlinecode"><span class="id" title="var">evP</span></span>, which is the evidence for <span class="inlinecode"><span class="id" title="var">P</span></span>, thus producing evidence for <span class="inlinecode"><span class="id" title="var">Q</span></span>.
+So "apply" really is a great name for the tactic:  it causes a function
+application to occur in the proof.
+
+<div class="paragraph"> </div>
+
+Let's try one more proof with implication.
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">imp_trans</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">P</span> <span class="id" title="var">Q</span> <span class="id" title="var">R</span> : <span class="id" title="keyword">Prop</span>,<br/>
+&nbsp;&nbsp;(<span class="id" title="var">P</span> -&gt; <span class="id" title="var">Q</span>) -&gt; (<span class="id" title="var">Q</span> -&gt; <span class="id" title="var">R</span>) -&gt; (<span class="id" title="var">P</span> -&gt; <span class="id" title="var">R</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+As usual, let's first try to give an argument in English.  We assume
+that <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">-&gt;</span> <span class="inlinecode"><span class="id" title="var">Q</span></span> and <span class="inlinecode"><span class="id" title="var">Q</span></span> <span class="inlinecode">-&gt;</span> <span class="inlinecode"><span class="id" title="var">R</span></span>, and we want to conclude <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">-&gt;</span> <span class="inlinecode"><span class="id" title="var">R</span></span>.  So suppose
+that <span class="inlinecode"><span class="id" title="var">P</span></span> did hold.  Then from <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">-&gt;</span> <span class="inlinecode"><span class="id" title="var">Q</span></span> we'd conclude <span class="inlinecode"><span class="id" title="var">Q</span></span>, and then from
+<span class="inlinecode"><span class="id" title="var">Q</span></span> <span class="inlinecode">-&gt;</span> <span class="inlinecode"><span class="id" title="var">R</span></span> we'd conclude <span class="inlinecode"><span class="id" title="var">R</span></span>.  So there's a kind of chain of evidence here
+from <span class="inlinecode"><span class="id" title="var">P</span></span> to <span class="inlinecode"><span class="id" title="var">Q</span></span> to <span class="inlinecode"><span class="id" title="var">R</span></span>.  This kind of chained relationship is called
+<i>transitive</i>, as you'll recall from CS 2800.  So what we're proving
+here is that implication is transitive, hence the name <span class="inlinecode"><span class="id" title="var">imp_trans</span></span>. 
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">P</span> <span class="id" title="var">Q</span> <span class="id" title="var">R</span> <span class="id" title="var">evPimpQ</span> <span class="id" title="var">evQimpR</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">evP</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">evQimpR</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">evPimpQ</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">assumption</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+The second line, <span class="inlinecode"><span class="id" title="tactic">intros</span></span> <span class="inlinecode"><span class="id" title="var">evP</span></span>, wouldn't actually need to be separated
+from the first line; we could have introduced <span class="inlinecode"><span class="id" title="var">evP</span></span> along with the rest.
+We did it separately just so that we could see that it peels off the
+<span class="inlinecode"><span class="id" title="var">P</span></span> from <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">-&gt;</span> <span class="inlinecode"><span class="id" title="var">R</span></span>.
+
+<div class="paragraph"> </div>
+
+The third line, <span class="inlinecode"><span class="id" title="tactic">apply</span></span> <span class="inlinecode"><span class="id" title="var">evQimpR</span></span> applies the evidence that <span class="inlinecode"><span class="id" title="var">Q</span></span> <span class="inlinecode">-&gt;</span> <span class="inlinecode"><span class="id" title="var">R</span></span> to
+the goal <span class="inlinecode"><span class="id" title="var">R</span></span>, causing the goal to become <span class="inlinecode"><span class="id" title="var">Q</span></span>.  Again, this is backward
+reasoning:  we want to show <span class="inlinecode"><span class="id" title="var">R</span></span>, and we know that <span class="inlinecode"><span class="id" title="var">Q</span></span> <span class="inlinecode">-&gt;</span> <span class="inlinecode"><span class="id" title="var">R</span></span>, so if 
+we could just show <span class="inlinecode"><span class="id" title="var">Q</span></span> we'd be done.  
+
+<div class="paragraph"> </div>
+
+The fourth line, <span class="inlinecode"><span class="id" title="tactic">apply</span></span> <span class="inlinecode"><span class="id" title="var">evPimpQ</span></span>, applies the evidence that <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">-&gt;</span> <span class="inlinecode"><span class="id" title="var">Q</span></span>
+to the goal <span class="inlinecode"><span class="id" title="var">Q</span></span>, causing the goal to become <span class="inlinecode"><span class="id" title="var">P</span></span>.
+
+<div class="paragraph"> </div>
+
+Finally, the fifth line, <span class="inlinecode"><span class="id" title="tactic">assumption</span></span>, finishes the proof by pointing
+out that <span class="inlinecode"><span class="id" title="var">P</span></span> is already an assumption.
+
+<div class="paragraph"> </div>
+
+Let's look at the resulting proof:
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Print</span> <span class="id" title="var">imp_trans</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Coq says
+<pre>
+imp_trans = 
+fun (P Q R : Prop) (evPimpQ : P -&gt; Q) (evQimpR : Q -&gt; R) (evP : P) =&gt;
+evQimpR (evPimpQ evP)
+     : forall P Q R : Prop, (P -&gt; Q) -&gt; (Q -&gt; R) -&gt; P -&gt; R
+</pre>
+
+<div class="paragraph"> </div>
+
+Drilling down into the body of that anonymous function we see
+<span class="inlinecode"><span class="id" title="var">evQimpR</span></span> <span class="inlinecode">(<span class="id" title="var">evPimpQ</span></span> <span class="inlinecode"><span class="id" title="var">evP</span>)</span>.  So we have <span class="inlinecode"><span class="id" title="var">evPimpQ</span></span> being applied to <span class="inlinecode"><span class="id" title="var">evP</span></span>, which
+transforms the evidence for <span class="inlinecode"><span class="id" title="var">P</span></span> into the evidence for <span class="inlinecode"><span class="id" title="var">Q</span></span>.  Then we have
+<span class="inlinecode"><span class="id" title="var">evQimpR</span></span> applied to that evidence for <span class="inlinecode"><span class="id" title="var">Q</span></span>, thus producing evidence for <span class="inlinecode"><span class="id" title="var">R</span></span>.  So
+there are two function applications.  If Coq had the OCaml operator <span class="inlinecode">|&gt;</span>, we
+could rewrite that function body as <span class="inlinecode"><span class="id" title="var">evP</span></span> <span class="inlinecode">|&gt;</span> <span class="inlinecode"><span class="id" title="var">evPimpQ</span></span> <span class="inlinecode">|&gt;</span> <span class="inlinecode"><span class="id" title="var">evQimpR</span></span>, which might
+make it even clearer what is going on:  the chain of reasoning just takes <span class="inlinecode"><span class="id" title="var">P</span></span> to
+<span class="inlinecode"><span class="id" title="var">Q</span></span> to <span class="inlinecode"><span class="id" title="var">R</span></span>.
+
+<div class="paragraph"> </div>
+
+
+<div class="paragraph"> </div>
+
+<a name="lab6"></a><h2 class="section">Conjunction</h2>
+
+
+<div class="paragraph"> </div>
+
+Now we turn our attention to the conjunction connective.  Here's
+a first theorem to prove.
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">and_fst</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">P</span> <span class="id" title="var">Q</span>, <span class="id" title="var">P</span> /\ <span class="id" title="var">Q</span> -&gt; <span class="id" title="var">P</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Why does that hold, intuitively?  Suppose we have evidence for <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">/\</span> <span class="inlinecode"><span class="id" title="var">Q</span></span>.
+Then we must have evidence for both <span class="inlinecode"><span class="id" title="var">P</span></span> and for <span class="inlinecode"><span class="id" title="var">Q</span></span>. The evidence for <span class="inlinecode"><span class="id" title="var">P</span></span> alone
+suffices to conclude <span class="inlinecode"><span class="id" title="var">P</span></span>.  As an example, if we have evidence that <span class="inlinecode"><span class="id" title="var">x</span></span> <span class="inlinecode">&gt;</span> <span class="inlinecode">0</span> <span class="inlinecode">/\</span> <span class="inlinecode"><span class="id" title="var">y</span></span> <span class="inlinecode">&gt;</span>
+<span class="inlinecode">0</span>, then we must have evidence that <span class="inlinecode"><span class="id" title="var">x</span></span> <span class="inlinecode">&gt;</span> <span class="inlinecode">0</span>; we're allowed to forget about the
+evidence for <span class="inlinecode"><span class="id" title="var">y</span></span> <span class="inlinecode">&gt;</span> <span class="inlinecode">0</span>.
+
+<div class="paragraph"> </div>
+
+Having established that intuition, let's create a proof with Coq.
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">P</span> <span class="id" title="var">Q</span> <span class="id" title="var">PandQ</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">PandQ</span> <span class="id" title="keyword">as</span> [<span class="id" title="var">P_holds</span> <span class="id" title="var">Q_holds</span>].<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">assumption</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+The second line of that proof uses a familiar tactic in a new way.
+Previously we used <span class="inlinecode"><span class="id" title="tactic">destruct</span></span> to do case analysis, splitting apart
+a <span class="inlinecode"><span class="id" title="var">day</span></span> into the seven possible constructors it could have.
+Here, we use <span class="inlinecode"><span class="id" title="tactic">destruct</span></span> to split the evidence for <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">/\</span> <span class="inlinecode"><span class="id" title="var">Q</span></span> into
+its separate components.  To give names to those two components,
+we use a new syntax, <span class="inlinecode"><span class="id" title="keyword">as</span></span> <span class="inlinecode">[...]</span>, where the names appearing in 
+the <span class="inlinecode">...</span> are used as the names for the components.  If we leave
+off the <span class="inlinecode"><span class="id" title="keyword">as</span></span> clause, Coq will happily choose names for us, but
+they won't be human-readable, descriptive names.  So it's good
+style to pick the names ourselves.  
+
+<div class="paragraph"> </div>
+
+After destructing the evidence for <span class="inlinecode"><span class="id" title="var">PandQ</span></span> into evidence for
+<span class="inlinecode"><span class="id" title="var">P</span></span> and evidence for <span class="inlinecode"><span class="id" title="var">Q</span></span>, we can easily finish the proof
+with <span class="inlinecode"><span class="id" title="tactic">assumption</span></span>.
+
+<div class="paragraph"> </div>
+
+Let's look at the proof of <span class="inlinecode"><span class="id" title="var">and_fst</span></span>.
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Print</span> <span class="id" title="var">and_fst</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Coq says that 
+<pre>
+and_fst = 
+fun (P Q : Prop) (PandQ : P /\ Q) =&gt;
+match PandQ with
+| conj P_holds _ =&gt; P_holds
+end
+     : forall P Q : Prop, P /\ Q -&gt; P
+</pre>
+
+<div class="paragraph"> </div>
+
+Let's dissect that.  We see that <span class="inlinecode"><span class="id" title="var">and_fst</span></span> is a function that takes three
+arguments.  The third is evidence for <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">/\</span> <span class="inlinecode"><span class="id" title="var">Q</span></span>.  The function then pattern
+matches against that evidence, providing just a single branch in the pattern
+match.  The pattern it uses is <span class="inlinecode"><span class="id" title="var">conj</span></span> <span class="inlinecode"><span class="id" title="var">P_holds</span></span> <span class="inlinecode"><span class="id" title="var">_</span></span>.  As in OCaml, <span class="inlinecode"><span class="id" title="var">_</span></span> is a wildcard
+that matches anything.  The identifier <span class="inlinecode"><span class="id" title="var">conj</span></span> is a constructor; unlike OCaml,
+it's fine for constructors to begin with lowercase characters.  So the pattern
+matches against <span class="inlinecode"><span class="id" title="var">conj</span></span> applied to two values, extracts the first value with the
+name <span class="inlinecode"><span class="id" title="var">P_holds</span></span>, and doesn't give a name to the second value.  The branch then
+returns that argument <span class="inlinecode"><span class="id" title="var">P_holds</span></span>.  So we can already see that the function is
+splitting apart the evidence into two pieces, and forgetting about one piece.
+
+<div class="paragraph"> </div>
+
+But to fully understand this, we need to know more about <span class="inlinecode">/\</span> and <span class="inlinecode"><span class="id" title="var">conj</span></span>.
+First, what is <span class="inlinecode">/\</span>?
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Locate</span> "/\".<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Coq says <span class="inlinecode">&quot;<span class="id" title="var">A</span></span> <span class="inlinecode">/\</span> <span class="inlinecode"><span class="id" title="var">B</span>&quot;</span> <span class="inlinecode">:=</span> <span class="inlinecode"><span class="id" title="var">and</span></span> <span class="inlinecode"><span class="id" title="var">A</span></span> <span class="inlinecode"><span class="id" title="var">B</span></span>.  That is, <span class="inlinecode">/\</span> is just an infix notation
+for the <span class="inlinecode"><span class="id" title="var">and</span></span> function.  What is <span class="inlinecode"><span class="id" title="var">and</span></span>?
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Print</span> <span class="id" title="var">and</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Coq says
+<pre>
+Inductive and (A B : Prop) : Prop :=  
+  conj : A -&gt; B -&gt; A /\ B
+</pre>
+
+<div class="paragraph"> </div>
+
+It might help to compare to lists.
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Print</span> <span class="id" title="var">list</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Coq says
+<pre>
+Inductive list (A : Type) : Type :=
+    nil : list A | cons : A -&gt; list A -&gt; list A
+</pre>
+
+<div class="paragraph"> </div>
+
+In Coq, <span class="inlinecode"><span class="id" title="keyword">Inductive</span></span> defines a so-called <i>inductive</i> type, and provides its
+constructors.  In OCaml, the <span class="inlinecode"><span class="id" title="keyword">type</span></span> keyword serves a similar purpose. So <span class="inlinecode"><span class="id" title="var">list</span></span>
+in Coq is a type with two constructors named <span class="inlinecode"><span class="id" title="var">nil</span></span> and <span class="inlinecode"><span class="id" title="var">cons</span></span>. Similarly, <span class="inlinecode"><span class="id" title="var">and</span></span>
+is a type with a single constructor named <span class="inlinecode"><span class="id" title="var">conj</span></span>, which is a function that takes
+in a value of type <span class="inlinecode"><span class="id" title="var">A</span></span>, a value of type <span class="inlinecode"><span class="id" title="var">B</span></span>, and returns a value of type <span class="inlinecode"><span class="id" title="var">A</span></span> <span class="inlinecode">/\</span>
+<span class="inlinecode"><span class="id" title="var">B</span></span>, which is just infix notation for <span class="inlinecode"><span class="id" title="var">and</span></span> <span class="inlinecode"><span class="id" title="var">A</span></span> <span class="inlinecode"><span class="id" title="var">B</span></span>.  Another way of putting that is
+that <span class="inlinecode"><span class="id" title="var">conj</span></span> takes in evidence of <span class="inlinecode"><span class="id" title="var">A</span></span>, evidence of <span class="inlinecode"><span class="id" title="var">B</span></span>, and returns evidence of
+<span class="inlinecode"><span class="id" title="var">and</span></span> <span class="inlinecode"><span class="id" title="var">A</span></span> <span class="inlinecode"><span class="id" title="var">B</span></span>.  
+
+<div class="paragraph"> </div>
+
+So there's only one way of producing evidence of <span class="inlinecode"><span class="id" title="var">A</span></span> <span class="inlinecode">/\</span> <span class="inlinecode"><span class="id" title="var">B</span></span>, which is to
+separately produce evidence of <span class="inlinecode"><span class="id" title="var">A</span></span> and of <span class="inlinecode"><span class="id" title="var">B</span></span>, both of which are passed into
+<span class="inlinecode"><span class="id" title="var">conj</span></span>.  That's why when we destructed <span class="inlinecode"><span class="id" title="var">A</span></span> <span class="inlinecode">/\</span> <span class="inlinecode"><span class="id" title="var">B</span></span>, it had to produce both evidence
+of <span class="inlinecode"><span class="id" title="var">A</span></span> and of <span class="inlinecode"><span class="id" title="var">B</span></span>. 
+
+<div class="paragraph"> </div>
+
+Going back to <span class="inlinecode"><span class="id" title="var">and_fst</span></span>:
+<pre>
+and_fst = 
+fun (P Q : Prop) (PandQ : P /\ Q) =&gt;
+match PandQ with
+| conj P_holds _ =&gt; P_holds
+end
+     : forall P Q : Prop, P /\ Q -&gt; P
+</pre>
+we have a function that pattern matches against <span class="inlinecode"><span class="id" title="var">PandQ</span></span>, extracts the
+evidence for <span class="inlinecode"><span class="id" title="var">P</span></span>, forgets about the evidence for <span class="inlinecode"><span class="id" title="var">Q</span></span>, and simply returns
+the evidence for <span class="inlinecode"><span class="id" title="var">P</span></span>.
+
+<div class="paragraph"> </div>
+
+Given all that, the following theorem and its program should be
+unsurprising.
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">and_snd</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">P</span> <span class="id" title="var">Q</span> : <span class="id" title="keyword">Prop</span>,<br/>
+&nbsp;&nbsp;<span class="id" title="var">P</span> /\ <span class="id" title="var">Q</span> -&gt; <span class="id" title="var">Q</span>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">P</span> <span class="id" title="var">Q</span> <span class="id" title="var">PandQ</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">PandQ</span> <span class="id" title="keyword">as</span> [<span class="id" title="var">P_holds</span> <span class="id" title="var">Q_holds</span>].<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">assumption</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Print</span> <span class="id" title="var">and_snd</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Coq responds:
+<pre>
+and_snd = 
+fun (P Q : Prop) (PandQ : P /\ Q) =&gt;
+match PandQ with
+| conj _ Q_holds =&gt; Q_holds
+end
+     : forall P Q : Prop, P /\ Q -&gt; Q
+</pre>
+
+<div class="paragraph"> </div>
+
+In that program the pattern match returns the second piece of evidence, which
+shows <span class="inlinecode"><span class="id" title="var">Q</span></span> holds, rather than the first, which would show that <span class="inlinecode"><span class="id" title="var">P</span></span> holds.
+
+<div class="paragraph"> </div>
+
+Here is another proof involving <span class="inlinecode"><span class="id" title="var">and</span></span>. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">and_ex</span> : 42=42 /\ 43=43.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Why does that hold, intuitively?  Because equality is reflexive, regardless
+of how many times we connect that fact with <span class="inlinecode">/\</span>. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">split</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">trivial</span>. <span class="id" title="tactic">trivial</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+The first line of that proof, <span class="inlinecode"><span class="id" title="tactic">split</span></span>, is a new tactic.  It splits a goal of
+the form <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">/\</span> <span class="inlinecode"><span class="id" title="var">Q</span></span> into two separate subgoals, one for <span class="inlinecode"><span class="id" title="var">P</span></span>, and another for <span class="inlinecode"><span class="id" title="var">Q</span></span>.
+Both must be proved individually.  In the proof above, <span class="inlinecode"><span class="id" title="tactic">trivial</span></span> suffices to
+prove them, because they are both trivial equalitiies.
+
+<div class="paragraph"> </div>
+
+What is <span class="inlinecode"><span class="id" title="var">and_ex</span></span>? 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Print</span> <span class="id" title="var">and_ex</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Coq responds:
+<pre>
+and_ex = conj eq_refl eq_refl
+     : 42 = 42 /\ 43 = 43
+</pre>
+
+<div class="paragraph"> </div>
+
+So <span class="inlinecode"><span class="id" title="var">and_ex</span></span> is <span class="inlinecode"><span class="id" title="var">conj</span></span> applied to <span class="inlinecode"><span class="id" title="var">eq_refl</span></span> as its first argument and <span class="inlinecode"><span class="id" title="var">eq_refl</span></span>
+as its second argument.
+
+<div class="paragraph"> </div>
+
+As another example of conjunction, let's prove that it is commutative. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">and_comm</span>: <span class="id" title="keyword">forall</span> <span class="id" title="var">P</span> <span class="id" title="var">Q</span>, <span class="id" title="var">P</span> /\ <span class="id" title="var">Q</span> -&gt; <span class="id" title="var">Q</span> /\ <span class="id" title="var">P</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Why does this hold?  If we assume that <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">/\</span> <span class="inlinecode"><span class="id" title="var">Q</span></span> holds, then separately we must
+have evidence for <span class="inlinecode"><span class="id" title="var">P</span></span> as well as <span class="inlinecode"><span class="id" title="var">Q</span></span>. But the we could just assemble that
+evidence in the opposite order, producing evidence for <span class="inlinecode"><span class="id" title="var">Q</span></span> <span class="inlinecode">/\</span> <span class="inlinecode"><span class="id" title="var">P</span></span>.  That's what
+the proof below does.
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">P</span> <span class="id" title="var">Q</span> <span class="id" title="var">PandQ</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">PandQ</span> <span class="id" title="keyword">as</span> [<span class="id" title="var">P_holds</span> <span class="id" title="var">Q_holds</span>].<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">split</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">all</span>: <span class="id" title="tactic">assumption</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+There's nothing new in that proof:  we split the evidence into two pieces using
+pattern matching, then reassemble them in a different order.  We can see that in
+the program:
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Print</span> <span class="id" title="var">and_comm</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Coq responds:
+<pre>
+and_comm = 
+fun (P Q : Prop) (PandQ : P /\ Q) =&gt;
+match PandQ with
+| conj P_holds Q_holds =&gt; conj Q_holds P_holds
+end
+     : forall P Q : Prop, P /\ Q -&gt; Q /\ P
+</pre>
+
+<div class="paragraph"> </div>
+
+Note how the pattern match binds two variables, then returns the <span class="inlinecode"><span class="id" title="var">conj</span></span>
+constructor applied to those variables in the opposite order.
+
+<div class="paragraph"> </div>
+
+Here's one more proof involving implication and conjunction. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">and_to_imp</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">P</span> <span class="id" title="var">Q</span> <span class="id" title="var">R</span> : <span class="id" title="keyword">Prop</span>,<br/>
+&nbsp;&nbsp;(<span class="id" title="var">P</span> /\ <span class="id" title="var">Q</span> -&gt; <span class="id" title="var">R</span>) -&gt; (<span class="id" title="var">P</span> -&gt; (<span class="id" title="var">Q</span> -&gt; <span class="id" title="var">R</span>)).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Intuitively, why does this hold?  Because we can assume <span class="inlinecode"><span class="id" title="var">P</span></span>, <span class="inlinecode"><span class="id" title="var">Q</span></span> and <span class="inlinecode"><span class="id" title="var">R</span></span>. as
+well as that <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">/\</span> <span class="inlinecode"><span class="id" title="var">Q</span></span> <span class="inlinecode">-&gt;</span> <span class="inlinecode"><span class="id" title="var">R</span></span>, and that we have evidence for <span class="inlinecode"><span class="id" title="var">P</span></span> and <span class="inlinecode"><span class="id" title="var">Q</span></span> already.
+We can combine those two pieces of evidence for <span class="inlinecode"><span class="id" title="var">P</span></span> and <span class="inlinecode"><span class="id" title="var">Q</span></span> into a single piece
+of evidence for <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">/\</span> <span class="inlinecode"><span class="id" title="var">Q</span></span>, which then yields the desired evidence for <span class="inlinecode"><span class="id" title="var">R</span></span>. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">P</span> <span class="id" title="var">Q</span> <span class="id" title="var">R</span> <span class="id" title="var">evPandQimpR</span> <span class="id" title="var">evP</span> <span class="id" title="var">evQ</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">evPandQimpR</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">split</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="var">all</span>: <span class="id" title="tactic">assumption</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+There are no new tactics in the proof above.   In line 2, we use <span class="inlinecode"><span class="id" title="tactic">apply</span></span> to
+once again do backwards reasoning, transforming the goal of <span class="inlinecode"><span class="id" title="var">R</span></span> into <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">/\</span> <span class="inlinecode"><span class="id" title="var">Q</span></span>.
+Then we split that goal into two pieces, each of which can be solved by
+assumption.
+
+<div class="paragraph"> </div>
+
+Let's look at the resulting program: 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Print</span> <span class="id" title="var">and_to_imp</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<pre>
+and_to_imp = 
+fun (P Q R : Prop) (evPandQimpR : P /\ Q -&gt; R) (evP : P) (evQ : Q) =&gt; 
+      evPandQimpR (conj evP evQ)
+  : forall P Q R : Prop, (P /\ Q -&gt; R) -&gt; P -&gt; Q -&gt; R
+</pre>
+
+<div class="paragraph"> </div>
+
+That program constructs evidence for <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">/\</span> <span class="inlinecode"><span class="id" title="var">Q</span></span> using <span class="inlinecode"><span class="id" title="var">P</span></span> and <span class="inlinecode"><span class="id" title="var">Q</span></span>, and 
+uses the evidence to get <span class="inlinecode"><span class="id" title="var">R</span></span> from <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">/\</span> <span class="inlinecode"><span class="id" title="var">Q</span></span>.
+
+<div class="paragraph"> </div>
+
+
+<div class="paragraph"> </div>
+
+<a name="lab7"></a><h2 class="section">Disjunction</h2>
+
+
+<div class="paragraph"> </div>
+
+Let's start with disjunction by proving a theorem very similar to the first
+theorem we proved for conjunction: 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">or_left</span> : <span class="id" title="keyword">forall</span> (<span class="id" title="var">P</span> <span class="id" title="var">Q</span> : <span class="id" title="keyword">Prop</span>), <span class="id" title="var">P</span> -&gt; <span class="id" title="var">P</span> \/ <span class="id" title="var">Q</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+As always, what's the intuition?  Well, if we have evidence for <span class="inlinecode"><span class="id" title="var">P</span></span>, then we
+have evidence for <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">\/</span> <span class="inlinecode"><span class="id" title="var">Q</span></span>, because we have evidence already for the left-hand
+side of that connective.
+
+<div class="paragraph"> </div>
+
+Let's formalize that argument in Coq. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">P</span> <span class="id" title="var">Q</span> <span class="id" title="var">P_holds</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">left</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">assumption</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+The second line of that proof, <span class="inlinecode"><span class="id" title="tactic">left</span></span>, uses a new tactic that tells Coq we
+want to prove the left-hand side of a disjunction.  Specifically, the goal at
+that point is <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">\/</span> <span class="inlinecode"><span class="id" title="var">Q</span></span>, and <span class="inlinecode"><span class="id" title="tactic">left</span></span> tells Coq the throw out <span class="inlinecode"><span class="id" title="var">Q</span></span> and just focus on
+proving <span class="inlinecode"><span class="id" title="var">P</span></span>.  That's easy, because <span class="inlinecode"><span class="id" title="var">P</span></span> is already an assumption.
+
+<div class="paragraph"> </div>
+
+Let's investigate the resulting program. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Print</span> <span class="id" title="var">or_left</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Coq responds
+<pre>
+or_left = 
+fun (P Q : Prop) (P_holds : P) =&gt; or_introl P_holds
+     : forall P Q : Prop, P -&gt; P \/ Q
+</pre>
+
+<div class="paragraph"> </div>
+
+That function's arguments are no mystery by now, but what is its body?
+We need to find out more about <span class="inlinecode"><span class="id" title="var">or_introl</span></span>.
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Locate</span> "\/".<br/>
+<span class="id" title="keyword">Print</span> <span class="id" title="var">or_introl</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+We learn that "\/" is infix notation for <span class="inlinecode"><span class="id" title="var">or</span></span> <span class="inlinecode"><span class="id" title="var">A</span></span> <span class="inlinecode"><span class="id" title="var">B</span></span>, and
+<span class="inlinecode"><span class="id" title="var">or_introl</span></span> is one of two constructors of the type <span class="inlinecode"><span class="id" title="var">or</span></span>:
+<pre>
+Inductive or (A B : Prop) : Prop :=
+    or_introl : A -&gt; A \/ B 
+  | or_intror : B -&gt; A \/ B
+</pre>
+
+<div class="paragraph"> </div>
+
+Those constructors take evidence for either the left-hand side or right-hand
+side of the disjuncation.  So the body of <span class="inlinecode"><span class="id" title="var">or_left</span></span> is just taking evidence for
+<span class="inlinecode"><span class="id" title="var">A</span></span> and using <span class="inlinecode"><span class="id" title="var">or_introl</span></span> to construct a value with that evidence.
+
+<div class="paragraph"> </div>
+
+Similarly, the following theorem constructs proof using evidence for the
+right-hand side of a disjunction. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">or_right</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">P</span> <span class="id" title="var">Q</span> : <span class="id" title="keyword">Prop</span>, <span class="id" title="var">Q</span> -&gt; <span class="id" title="var">P</span> \/ <span class="id" title="var">Q</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Much like with <span class="inlinecode"><span class="id" title="var">or_left</span></span>, this intuitively holds because evidence for <span class="inlinecode"><span class="id" title="var">Q</span></span>
+suffices as evidence for <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">\/</span> <span class="inlinecode"><span class="id" title="var">Q</span></span>. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">P</span> <span class="id" title="var">Q</span> <span class="id" title="var">Q_holds</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">right</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">assumption</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Print</span> <span class="id" title="var">or_right</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+The resulting program uses the constructor <span class="inlinecode"><span class="id" title="var">or_intror</span></span>:
+<pre>
+or_right = 
+fun (P Q : Prop) (Q_holds : Q) =&gt; or_intror Q_holds
+     : forall P Q : Prop, Q -&gt; P \/ Q
+</pre>
+
+<div class="paragraph"> </div>
+
+We could use those theorems to prove some related theorems.
+For example, <span class="inlinecode">3110</span> <span class="inlinecode">=</span> <span class="inlinecode">3110</span> implies that <span class="inlinecode">3110</span> <span class="inlinecode">=</span> <span class="inlinecode">3110</span> <span class="inlinecode">\/</span> <span class="inlinecode">2110</span> <span class="inlinecode">=</span> <span class="inlinecode">3110</span>.
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">or_thm</span> : 3110 = 3110 \/ 2110 = 3110.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Why does that hold?  Because the left-hand side holds---even though
+the right hand side does not.
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">left</span>. <span class="id" title="tactic">trivial</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Print</span> <span class="id" title="var">or_thm</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Coq responds that
+<pre>
+or_thm = or_introl eq_refl
+     : 3110 = 3110 \/ 2110 = 3110
+</pre>
+
+<div class="paragraph"> </div>
+
+In other words, the theorem is proved by applying the <span class="inlinecode"><span class="id" title="var">or_introl</span></span> constructor to
+<span class="inlinecode"><span class="id" title="var">eq_refl</span></span>.  It matters, though, that we provided Coq with the guidance to prove
+the left-hand side. If we had chosen the right-hand side, we would have been
+stuck trying to prove that <span class="inlinecode">2110</span> <span class="inlinecode">=</span> <span class="inlinecode">3110</span>, which of course it does not.
+
+<div class="paragraph"> </div>
+
+Next, let's prove that disjunction is commutative, as we did for conjunction
+above. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">or_comm</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">P</span> <span class="id" title="var">Q</span>, <span class="id" title="var">P</span> \/ <span class="id" title="var">Q</span> -&gt; <span class="id" title="var">Q</span> \/ <span class="id" title="var">P</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Why does this hold?  If you assume you have evidence for <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">\/</span> <span class="inlinecode"><span class="id" title="var">Q</span></span>, then you
+either have evidence for <span class="inlinecode"><span class="id" title="var">P</span></span> or evidence for <span class="inlinecode"><span class="id" title="var">Q</span></span>. If it's <span class="inlinecode"><span class="id" title="var">P</span></span>, then you can
+prove <span class="inlinecode"><span class="id" title="var">Q</span></span> <span class="inlinecode">\/</span> <span class="inlinecode"><span class="id" title="var">P</span></span> by providing evidence for the right-hand side; or if it's <span class="inlinecode"><span class="id" title="var">Q</span></span>,
+for the left-hand side.  
+
+<div class="paragraph"> </div>
+
+That's what the Coq proof below does. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">P</span> <span class="id" title="var">Q</span> <span class="id" title="var">PorQ</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">PorQ</span> <span class="id" title="keyword">as</span> [<span class="id" title="var">P_holds</span> | <span class="id" title="var">Q_holds</span>].<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;- <span class="id" title="tactic">right</span>. <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;- <span class="id" title="tactic">left</span>. <span class="id" title="tactic">assumption</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+In the second line of that proof, we destruct the disjunction <span class="inlinecode"><span class="id" title="var">PorQ</span></span> with a
+slightly different syntax than when we destructed conjunction above.  There's
+now a vertical bar.  The reason for that has to do with the definitions of <span class="inlinecode"><span class="id" title="var">and</span></span>
+and <span class="inlinecode"><span class="id" title="var">or</span></span>.  
+
+<div class="paragraph"> </div>
+
+The definition of <span class="inlinecode"><span class="id" title="var">and</span></span> had just a single constructor:
+<pre>
+conj : A -&gt; B -&gt; A /\ B
+</pre>
+So when we wrote <span class="inlinecode"><span class="id" title="tactic">destruct</span></span> <span class="inlinecode"><span class="id" title="var">PandQ</span></span> <span class="inlinecode"><span class="id" title="keyword">as</span></span> <span class="inlinecode">[<span class="id" title="var">P_holds</span></span> <span class="inlinecode"><span class="id" title="var">Q_holds</span>]</span>, we were essentially
+writing a pattern match against that single constructor <span class="inlinecode"><span class="id" title="var">conj</span></span>, and binding its
+<span class="inlinecode"><span class="id" title="var">A</span></span> argument to the name <span class="inlinecode"><span class="id" title="var">P_holds</span></span>, and its <span class="inlinecode"><span class="id" title="var">B</span></span> argument to the name <span class="inlinecode"><span class="id" title="var">Q_holds</span></span>.
+
+<div class="paragraph"> </div>
+
+But the definition of <span class="inlinecode"><span class="id" title="var">or</span></span> has two constructors:
+<pre>
+    or_introl : A -&gt; A \/ B 
+  | or_intror : B -&gt; A \/ B
+</pre>
+So when we write <span class="inlinecode"><span class="id" title="tactic">destruct</span></span> <span class="inlinecode"><span class="id" title="var">PorQ</span></span> <span class="inlinecode"><span class="id" title="keyword">as</span></span> <span class="inlinecode">[<span class="id" title="var">P_holds</span></span> <span class="inlinecode">|</span> <span class="inlinecode"><span class="id" title="var">Q_holds</span>]</span>, we're providing two
+patterns: the first matches against the first constructor <span class="inlinecode"><span class="id" title="var">or_introl</span></span>, binding
+its <span class="inlinecode"><span class="id" title="var">A</span></span> argument to the name <span class="inlinecode"><span class="id" title="var">P_holds</span></span>; and the second against the second
+constructor <span class="inlinecode"><span class="id" title="var">or_intror</span></span>, binding its <span class="inlinecode"><span class="id" title="var">B</span></span> argument to <span class="inlinecode"><span class="id" title="var">Q_holds</span></span>. 
+
+<div class="paragraph"> </div>
+
+What makes this confusing to an OCaml programmer is that the <span class="inlinecode"><span class="id" title="keyword">as</span></span> clause doesn't
+actually name the constructors.  It might be clearer if Coq's <span class="inlinecode"><span class="id" title="tactic">destruct</span></span> tactic
+used the following hypothetical syntax:
+<pre>
+  destruct PandQ as [conj P_holds Q_holds].
+  destruct PorQ as [or_introl P_holds | or_intror Q_holds].
+</pre>
+but that's just not how <span class="inlinecode"><span class="id" title="tactic">destruct</span>..<span class="id" title="keyword">as</span></span> works.
+
+<div class="paragraph"> </div>
+
+After the destruction occurs, we get two new subgoals to prove, corresponding to
+whether <span class="inlinecode"><span class="id" title="var">PorQ</span></span> matched <span class="inlinecode"><span class="id" title="var">or_introl</span></span> or <span class="inlinecode"><span class="id" title="var">or_intror</span></span>. In the third line of the
+proof, which corresponds to <span class="inlinecode"><span class="id" title="var">PorQ</span></span> matching <span class="inlinecode"><span class="id" title="var">or_introl</span></span>, we have evidence for
+<span class="inlinecode"><span class="id" title="var">P</span></span>, so we choose to prove the right side of <span class="inlinecode"><span class="id" title="var">Q</span></span> <span class="inlinecode">\/</span> <span class="inlinecode"><span class="id" title="var">P</span></span> by assumption.  The fourth
+line does a similar thing, but using evidence for <span class="inlinecode"><span class="id" title="var">Q</span></span> hence proving the left
+side of <span class="inlinecode"><span class="id" title="var">Q</span></span> <span class="inlinecode">\/</span> <span class="inlinecode"><span class="id" title="var">P</span></span>.
+
+<div class="paragraph"> </div>
+
+Let's look at the resulting proof. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Print</span> <span class="id" title="var">or_comm</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Coq responds
+<pre>
+or_comm = 
+fun (P Q : Prop) (PorQ : P \/ Q) =&gt;
+match PorQ with
+| or_introl P_holds =&gt; or_intror P_holds
+| or_intror Q_holds =&gt; or_introl Q_holds
+end
+     : forall P Q : Prop, P \/ Q -&gt; Q \/ P)
+</pre>
+
+<div class="paragraph"> </div>
+
+That function takes an argument <span class="inlinecode"><span class="id" title="var">PorQ</span></span> is evidence for <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">\/</span> <span class="inlinecode"><span class="id" title="var">Q</span></span>, pattern matches
+against that argument, extracts the evidence for either <span class="inlinecode"><span class="id" title="var">P</span></span> or <span class="inlinecode"><span class="id" title="var">Q</span></span>, then returns
+that evidence wrapped in the "opposite" constructor:  evidence that came in in
+the left constructor is returned with the right constructor, and vice versa.  
+
+<div class="paragraph"> </div>
+
+Next, let's prove a theorem involving both conjunction and disjunction. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">or_distr_and</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">P</span> <span class="id" title="var">Q</span> <span class="id" title="var">R</span>, <br/>
+&nbsp;&nbsp;<span class="id" title="var">P</span> \/ (<span class="id" title="var">Q</span> /\ <span class="id" title="var">R</span>) -&gt; (<span class="id" title="var">P</span> \/ <span class="id" title="var">Q</span>) /\ (<span class="id" title="var">P</span> \/ <span class="id" title="var">R</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+This theorem says that "or" distributes over "and".  Intuitively, if we have
+evidence for <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">\/</span> <span class="inlinecode">(<span class="id" title="var">Q</span></span> <span class="inlinecode">/\</span> <span class="inlinecode"><span class="id" title="var">R</span>)</span>, then one of two things holds: either we have
+evidence for <span class="inlinecode"><span class="id" title="var">P</span></span>, or we have evidence for <span class="inlinecode"><span class="id" title="var">Q</span></span> <span class="inlinecode">/\</span> <span class="inlinecode"><span class="id" title="var">R</span></span>.
+
+<div class="paragraph"> </div>
+
+<ul class="doclist">
+<li> If we have evidence for <span class="inlinecode"><span class="id" title="var">P</span></span>, then we use that evidence to create evidence both
+  for <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">\/</span> <span class="inlinecode"><span class="id" title="var">Q</span></span> and for <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">/\</span> <span class="inlinecode"><span class="id" title="var">R</span></span>.
+
+<div class="paragraph"> </div>
+
+
+</li>
+<li> If we have evidence for <span class="inlinecode"><span class="id" title="var">Q</span></span> <span class="inlinecode">/\</span> <span class="inlinecode"><span class="id" title="var">R</span></span>, then we split that evidence apart into
+  evidence separately for <span class="inlinecode"><span class="id" title="var">Q</span></span> and for <span class="inlinecode"><span class="id" title="var">R</span></span>.  We use the evidence for
+  <span class="inlinecode"><span class="id" title="var">Q</span></span> to create evidence for <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">\/</span> <span class="inlinecode"><span class="id" title="var">Q</span></span>, and likewise the evidence for <span class="inlinecode"><span class="id" title="var">R</span></span> to
+  create evidence for <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">\/</span> <span class="inlinecode"><span class="id" title="var">R</span></span>.
+
+</li>
+</ul>
+
+<div class="paragraph"> </div>
+
+The Coq proof below follows that intuition. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">P</span> <span class="id" title="var">Q</span> <span class="id" title="var">R</span> <span class="id" title="var">PorQR</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">PorQR</span> <span class="id" title="keyword">as</span> [<span class="id" title="var">P_holds</span> | <span class="id" title="var">QR_holds</span>].<br/>
+&nbsp;&nbsp;- <span class="id" title="tactic">split</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;+ <span class="id" title="tactic">left</span>. <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;+ <span class="id" title="tactic">left</span>. <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;- <span class="id" title="tactic">destruct</span> <span class="id" title="var">QR_holds</span> <span class="id" title="keyword">as</span> [<span class="id" title="var">Q_holds</span> <span class="id" title="var">R_holds</span>].<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">split</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;+ <span class="id" title="tactic">right</span>. <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;+ <span class="id" title="tactic">right</span>. <span class="id" title="tactic">assumption</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+We used <i>nested bullets</i> in that proof to keep the structure of the proof
+clear to the reader, and to make it easier to follow the proof in the proof
+window when we step through it.  
+
+<div class="paragraph"> </div>
+
+But you'll notice there's a lot of repetition in the proof.  We can eliminate
+some by using the <span class="inlinecode">;</span> tactical (discussed in the previous notes) to chain
+together some proof steps. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">or_distr_and_shorter</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">P</span> <span class="id" title="var">Q</span> <span class="id" title="var">R</span>, <br/>
+&nbsp;&nbsp;<span class="id" title="var">P</span> \/ (<span class="id" title="var">Q</span> /\ <span class="id" title="var">R</span>) -&gt; (<span class="id" title="var">P</span> \/ <span class="id" title="var">Q</span>) /\ (<span class="id" title="var">P</span> \/ <span class="id" title="var">R</span>).<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">P</span> <span class="id" title="var">Q</span> <span class="id" title="var">R</span> <span class="id" title="var">PorQR</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">PorQR</span> <span class="id" title="keyword">as</span> [<span class="id" title="var">P_holds</span> | <span class="id" title="var">QR_holds</span>].<br/>
+&nbsp;&nbsp;- <span class="id" title="tactic">split</span>; <span class="id" title="tactic">left</span>; <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;- <span class="id" title="tactic">destruct</span> <span class="id" title="var">QR_holds</span> <span class="id" title="keyword">as</span> [<span class="id" title="var">Q_holds</span> <span class="id" title="var">R_holds</span>].<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">split</span>; <span class="id" title="tactic">right</span>; <span class="id" title="tactic">assumption</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Print</span> <span class="id" title="var">or_distr_and</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Either way, the resulting proof is
+<pre>
+or_distr_and = 
+fun (P Q R : Prop) (PorQR : P \/ Q /\ R) =&gt;
+match PorQR with
+| or_introl P_holds =&gt; conj (or_introl P_holds) (or_introl P_holds)
+| or_intror QR_holds =&gt;
+    match QR_holds with
+    | conj Q_holds R_holds =&gt; conj (or_intror Q_holds) (or_intror R_holds)
+    end
+end
+     : forall P Q R : Prop, P \/ Q /\ R -&gt; (P \/ Q) /\ (P \/ R)
+</pre>
+
+<div class="paragraph"> </div>
+
+The nested pattern match in that proof corresponds to the nested <span class="inlinecode"><span class="id" title="tactic">destruct</span></span>
+above.  Note that Coq omits some parentheses around conjunction, because it is
+defined to have higher precedence than disjunction---just like <span class="inlinecode">*</span> has higher
+precedence than <span class="inlinecode">+</span>.
+
+<div class="paragraph"> </div>
+
+
+<div class="paragraph"> </div>
+
+<a name="lab8"></a><h2 class="section"><span class="inlinecode"><span class="id" title="var">False</span></span> and <span class="inlinecode"><span class="id" title="var">True</span></span></h2>
+
+
+<div class="paragraph"> </div>
+
+<span class="inlinecode"><span class="id" title="var">False</span></span> is the proposition that can never hold:  we can never actually have
+evidence for it.  If we did somehow have evidence for <span class="inlinecode"><span class="id" title="var">False</span></span>, our entire system
+of reasoning would be broken. There's a Latin phrase often used for that idea:
+<i>ex falso quodlibet</i>, meaning "from false, anything".  In English it's sometimes
+known as the <i>Principle of Explosion</i>:  if you're able to show <span class="inlinecode"><span class="id" title="var">False</span></span>, then
+everything just explodes, and in fact anything at all becomes provable.
+
+<div class="paragraph"> </div>
+
+Here's the definition of <span class="inlinecode"><span class="id" title="var">False</span></span>: 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Print</span> <span class="id" title="var">False</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Coq responds
+<pre>
+Inductive False : Prop :=  
+</pre>
+
+<div class="paragraph"> </div>
+
+No, that isn't a typo above.  There is nothing on the right-hand side of the
+<span class="inlinecode">:=</span>.  The definition is saying that <span class="inlinecode"><span class="id" title="var">False</span></span> is an inductive type, like <span class="inlinecode"><span class="id" title="var">and</span></span>
+and <span class="inlinecode"><span class="id" title="var">or</span></span>, but it has zero constructors.  Since it has no constructors, we can
+never create a value of type <span class="inlinecode"><span class="id" title="var">False</span></span>---and that means we can never create
+evidence that <span class="inlinecode"><span class="id" title="var">False</span></span> holds.  
+
+<div class="paragraph"> </div>
+
+Let's prove the Principle of Explosion. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">explosion</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">P</span>:<span class="id" title="keyword">Prop</span>, <span class="id" title="var">False</span> -&gt; <span class="id" title="var">P</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Why should this theorem hold?  Because of the intuition we gave above
+regarding <i>ex falso</i>. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">P</span> <span class="id" title="var">false_holds</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">contradiction</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+The second line of the proof uses a new tactic, <span class="inlinecode"><span class="id" title="var">contradiction</span></span>.  This
+tactic looks for any contradictions or assumptions of <span class="inlinecode"><span class="id" title="var">False</span></span>, and uses those to
+conclude the proof.  In this case, it immediately finds <span class="inlinecode"><span class="id" title="var">False</span></span> as an assumption
+named <span class="inlinecode"><span class="id" title="var">false_holds</span></span>.
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Print</span> <span class="id" title="var">explosion</span>.<br/>
+<span class="id" title="keyword">Print</span> <span class="id" title="var">False_ind</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+The proof that Coq finds for <span class="inlinecode"><span class="id" title="var">explosion</span></span> given the above tactics is a little bit
+hard to follow because it uses <span class="inlinecode"><span class="id" title="var">False_ind</span></span> that are already defined for us.
+Its definition is given below, but it's okay if you want to skip over reading 
+them at first.
+
+<div class="paragraph"> </div>
+
+<pre>
+explosion = 
+fun (P : Prop) (false_holds : False) =&gt; False_ind P false_holds
+     : forall P : Prop, False -&gt; P
+
+False_ind =
+fun (P : Prop) (f : False) =&gt; match f return P with
+                              end
+     : forall P : Type, False -&gt; P
+</pre>
+
+<div class="paragraph"> </div>
+
+(The <span class="inlinecode"><span class="id" title="keyword">return</span></span> <span class="inlinecode"><span class="id" title="var">P</span></span> in the pattern match above is a type annotation: it says
+that the return type of the entire <span class="inlinecode"><span class="id" title="keyword">match</span></span> expression is <span class="inlinecode"><span class="id" title="var">P</span></span>.)
+
+<div class="paragraph"> </div>
+
+We could simplify the proof of <span class="inlinecode"><span class="id" title="var">explosion</span></span> by just directly writing that pattern match ourselves.  Let's do that using the <span class="inlinecode"><span class="id" title="keyword">Definition</span></span> command we saw above. 
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">explosion'</span> : <span class="id" title="keyword">forall</span> (<span class="id" title="var">P</span>:<span class="id" title="keyword">Prop</span>), <span class="id" title="var">False</span> -&gt; <span class="id" title="var">P</span> := <br/>
+&nbsp;&nbsp;<span class="id" title="keyword">fun</span> (<span class="id" title="var">P</span> : <span class="id" title="keyword">Prop</span>) (<span class="id" title="var">f</span> : <span class="id" title="var">False</span>) =&gt; <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">f</span> <span class="id" title="keyword">with</span> <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+The proof of <span class="inlinecode"><span class="id" title="var">explosion'</span></span> is a function that takes two inputs, a proposition
+<span class="inlinecode"><span class="id" title="var">P</span></span> and a value <span class="inlinecode"><span class="id" title="var">f</span></span> of type <span class="inlinecode"><span class="id" title="var">False</span></span>.  As usual, we should understand that second
+argument as being evidence for <span class="inlinecode"><span class="id" title="var">False</span></span>.  But it should be impossible to
+construct such evidence!  And indeed it is, because <span class="inlinecode"><span class="id" title="var">False</span></span> has no constructors.
+So we have a function that we could never actually apply.
+
+<div class="paragraph"> </div>
+
+In the body of that function is a pattern match against <span class="inlinecode"><span class="id" title="var">f</span></span>.  That pattern match
+has zero branches in it, exactly because <span class="inlinecode"><span class="id" title="var">False</span></span> has zero constructors. There is
+nothing that could ever possibly match <span class="inlinecode"><span class="id" title="var">f</span></span>.
+
+<div class="paragraph"> </div>
+
+The return type of the function is <span class="inlinecode"><span class="id" title="var">P</span></span>, meaning it purportedly is evidence for
+<span class="inlinecode"><span class="id" title="var">P</span></span>.  But of course no such evidence is ever constructed by the function, nor
+could it be.  So it's a good thing that it's impossible to apply the function.
+Were it possible, it would have to fabricate evidence for any proposition <span class="inlinecode"><span class="id" title="var">P</span></span>
+whatsoever---which is not possible. 
+
+<div class="paragraph"> </div>
+
+We can never prove <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">-&gt;</span> <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">/\</span> <span class="inlinecode"><span class="id" title="var">False</span></span>, because there is no way to construct the
+evidence for the right side. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">p_imp_p_and_false</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">P</span>:<span class="id" title="keyword">Prop</span>, <span class="id" title="var">P</span> -&gt; <span class="id" title="var">P</span> /\ <span class="id" title="var">False</span>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">P</span> <span class="id" title="var">P_holds</span>. <span class="id" title="tactic">split</span>. <span class="id" title="tactic">assumption</span>. <span class="id" title="keyword">Abort</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+But we can always prove <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">-&gt;</span> <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">\/</span> <span class="inlinecode"><span class="id" title="var">False</span></span> by just focusing on the non-false
+part of the disjunction. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">p_imp_p_or_false</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">P</span>:<span class="id" title="keyword">Prop</span>, <span class="id" title="var">P</span> -&gt; <span class="id" title="var">P</span> \/ <span class="id" title="var">False</span>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">P</span> <span class="id" title="var">P_holds</span>. <span class="id" title="tactic">left</span>. <span class="id" title="tactic">assumption</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="var">True</span></span> is the proposition that is always true, i.e., for which we can always
+provide.  It is defined by Coq as an inductive type: 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Print</span> <span class="id" title="var">True</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Coq responds:
+<pre>
+Inductive True : Prop :=  I : True
+</pre>
+
+<div class="paragraph"> </div>
+
+So <span class="inlinecode"><span class="id" title="var">True</span></span> has a single constructor <span class="inlinecode"><span class="id" title="var">I</span></span>, and anywhere we write <span class="inlinecode"><span class="id" title="var">I</span></span>, that provides
+evidence for <span class="inlinecode"><span class="id" title="var">True</span></span>.  Let's redo the two theorem we just did for <span class="inlinecode"><span class="id" title="var">False</span></span>, but
+with <span class="inlinecode"><span class="id" title="var">True</span></span> in place of <span class="inlinecode"><span class="id" title="var">False</span></span>. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">p_imp_p_and_true</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">P</span>:<span class="id" title="keyword">Prop</span>, <span class="id" title="var">P</span> -&gt; <span class="id" title="var">P</span> /\ <span class="id" title="var">True</span>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">P</span> <span class="id" title="var">P_holds</span>. <span class="id" title="tactic">split</span>. <span class="id" title="tactic">assumption</span>. <span class="id" title="tactic">exact</span> <span class="id" title="var">I</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+The final tactic in that proof, <span class="inlinecode"><span class="id" title="tactic">exact</span></span>, can be used whenever you already
+know exactly the program expression you want to write to provide evidence for
+the goal you are trying to prove.  In this case, we know that <span class="inlinecode"><span class="id" title="var">I</span></span> always
+provides evidence for <span class="inlinecode"><span class="id" title="var">true</span></span>.  Instead of <span class="inlinecode"><span class="id" title="tactic">exact</span></span> we could also have used
+<span class="inlinecode"><span class="id" title="tactic">trivial</span></span>, which is capable of proving trivial propositions like <span class="inlinecode"><span class="id" title="var">True</span></span>. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">p_imp_p_or_true</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">P</span>:<span class="id" title="keyword">Prop</span>, <span class="id" title="var">P</span> -&gt; <span class="id" title="var">P</span> \/ <span class="id" title="var">True</span>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">P</span> <span class="id" title="var">P_holds</span>. <span class="id" title="tactic">left</span>. <span class="id" title="tactic">assumption</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+<a name="lab9"></a><h2 class="section">Negation</h2>
+
+
+<div class="paragraph"> </div>
+
+The negation connective can be the trickiest to work with in Coq.  Let's start
+by seeing how it is defined. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Locate</span> "~".<br/>
+<span class="id" title="keyword">Print</span> <span class="id" title="var">not</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Coq responds
+<pre>
+not = fun A : Prop =&gt; A -&gt; False
+     : Prop -&gt; Prop
+</pre>
+
+<div class="paragraph"> </div>
+
+Unlike conjunction and disjunction, negation is defined as a function, rather
+than an inductive type.  Anywhere we write <span class="inlinecode">~<span class="id" title="var">P</span></span>, it really means <span class="inlinecode"><span class="id" title="var">not</span></span> <span class="inlinecode"><span class="id" title="var">P</span></span>, which
+is <span class="inlinecode">(<span class="id" title="keyword">fun</span></span> <span class="inlinecode"><span class="id" title="var">A</span></span> <span class="inlinecode">=&gt;</span> <span class="inlinecode"><span class="id" title="var">A</span></span> <span class="inlinecode">-&gt;</span> <span class="inlinecode"><span class="id" title="var">False</span>)</span> <span class="inlinecode"><span class="id" title="var">P</span></span>, which reduces to <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">-&gt;</span> <span class="inlinecode"><span class="id" title="var">False</span></span>.  In short, <span class="inlinecode">~<span class="id" title="var">P</span></span> 
+is effectively syntactic sugar for <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">-&gt;</span> <span class="inlinecode"><span class="id" title="var">False</span></span>.  
+
+<div class="paragraph"> </div>
+
+Here are two proofs involving negation, so that we can get used to this
+definition of it. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">notFalse</span> : ~<span class="id" title="var">False</span> -&gt; <span class="id" title="var">True</span>.<br/>
+</div>
+
+<div class="doc">
+Intuition:  anything implies <span class="inlinecode"><span class="id" title="var">True</span></span>, regardless of what that anything is. 
+</div>
+<div class="code">
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">unfold</span> <span class="id" title="var">not</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">exact</span> <span class="id" title="var">I</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+The first line of that proof, <span class="inlinecode"><span class="id" title="tactic">unfold</span></span> <span class="inlinecode"><span class="id" title="var">not</span></span>, is a new tactic, which replaces
+the <span class="inlinecode">~</span> in the goal with its definition and simplifies it.  So <span class="inlinecode">~<span class="id" title="var">False</span></span> becomes
+<span class="inlinecode"><span class="id" title="var">False</span></span> <span class="inlinecode">-&gt;</span> <span class="inlinecode"><span class="id" title="var">False</span></span>. The second line uses a familiar tactic in a new way. We don't
+provide any names to <span class="inlinecode"><span class="id" title="tactic">intros</span></span>, which causes Coq to choose its own names.
+Normally we consider it good style to choose them ourselves, but here, we don't
+care what they are, because we are never going to use them.  Finally, the third
+line uses <span class="inlinecode"><span class="id" title="var">I</span></span> to prove <span class="inlinecode"><span class="id" title="var">True</span></span>.
+
+<div class="paragraph"> </div>
+
+Looking at the actual program produced, we see that it's very simple:
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Print</span> <span class="id" title="var">notFalse</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Coq responds
+<pre>
+notFalse = fun _ : False -&gt; False =&gt; I
+</pre>
+
+<div class="paragraph"> </div>
+
+which is a function that takes an argument that is never used, and simply
+returns <span class="inlinecode"><span class="id" title="var">I</span></span>, which is the evidence for <span class="inlinecode"><span class="id" title="var">True</span></span>.
+
+<div class="paragraph"> </div>
+
+Here's a second proof involving negation. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">notTrue</span>: ~<span class="id" title="var">True</span> -&gt; <span class="id" title="var">False</span>.<br/>
+</div>
+
+<div class="doc">
+Intuition:  if <span class="inlinecode"><span class="id" title="var">True</span></span> implies <span class="inlinecode"><span class="id" title="var">False</span></span>, and if <span class="inlinecode"><span class="id" title="var">True</span></span>, then <span class="inlinecode"><span class="id" title="var">False</span></span>. 
+</div>
+<div class="code">
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">unfold</span> <span class="id" title="var">not</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">t_imp_f</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">t_imp_f</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">exact</span> <span class="id" title="var">I</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+The first line of the proof replaces <span class="inlinecode">~<span class="id" title="var">True</span></span> with <span class="inlinecode"><span class="id" title="var">True</span></span> <span class="inlinecode">-&gt;</span> <span class="inlinecode"><span class="id" title="var">False</span></span>. The rest
+of the proof proceeds by moving <span class="inlinecode"><span class="id" title="var">True</span></span> <span class="inlinecode">-&gt;</span> <span class="inlinecode"><span class="id" title="var">False</span></span> into the assumptions, then
+applying it to do backward reasoning, leaving us with needing to prove <span class="inlinecode"><span class="id" title="var">True</span></span>.
+That holds by the <span class="inlinecode"><span class="id" title="var">I</span></span> constructor.
+
+<div class="paragraph"> </div>
+
+The program that proof produces is interesting: 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Print</span> <span class="id" title="var">notTrue</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Coq responds
+<pre>
+notTrue = fun t_imp_f : True -&gt; False =&gt; t_imp_f I
+     : ~ True -&gt; False
+</pre>
+
+<div class="paragraph"> </div>
+
+That proof is actually a higher-order function that takes in a function
+<span class="inlinecode"><span class="id" title="var">t_imp_f</span></span> and applies that function to <span class="inlinecode"><span class="id" title="var">I</span></span>, thus transforming evidence
+for <span class="inlinecode"><span class="id" title="var">True</span></span> into evidence for <span class="inlinecode"><span class="id" title="var">False</span></span>, and returning that evidence.  If
+that seems impossible, it is!  We'll never be able to apply this function,
+because we'll never be able to construct a value to pass to it whose
+type is <span class="inlinecode">~<span class="id" title="var">True</span></span>, i.e., <span class="inlinecode"><span class="id" title="var">True</span></span> <span class="inlinecode">-&gt;</span> <span class="inlinecode"><span class="id" title="var">False</span></span>.   
+
+<div class="paragraph"> </div>
+
+Next, let's return to the idea of explosion.  From a contradiction we should
+be able to derive anything at all.  One kind of contradiction is for a 
+proposition and its negation to hold simultaneously, e.g., <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">/\</span> <span class="inlinecode">~<span class="id" title="var">P</span></span>.
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">contra_implies_anything</span> : <span class="id" title="keyword">forall</span> (<span class="id" title="var">P</span> <span class="id" title="var">Q</span> : <span class="id" title="keyword">Prop</span>), <span class="id" title="var">P</span> /\ ~<span class="id" title="var">P</span> -&gt; <span class="id" title="var">Q</span>.<br/>
+</div>
+
+<div class="doc">
+Intuition:  principle of explosion 
+</div>
+<div class="code">
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">unfold</span> <span class="id" title="var">not</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">P</span> <span class="id" title="var">Q</span> <span class="id" title="var">PandnotP</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">PandnotP</span> <span class="id" title="keyword">as</span> [<span class="id" title="var">P_holds</span> <span class="id" title="var">notP_holds</span>].<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">contradiction</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+This proof proceeds along familiar lines:  We destruct the evidence of <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">/\</span>
+<span class="inlinecode">~<span class="id" title="var">P</span></span> into two pieces.  That leaves us with <span class="inlinecode"><span class="id" title="var">P</span></span> as an assumption as well as <span class="inlinecode">~<span class="id" title="var">P</span></span>.
+The <span class="inlinecode"><span class="id" title="var">contradiction</span></span> tactic detects those contradictory assumptions and finished
+the proof.  By the way, we could have left out the <span class="inlinecode"><span class="id" title="keyword">as</span></span> clause in the <span class="inlinecode"><span class="id" title="tactic">destruct</span></span>
+here, since we are never going to use the names we chose, but they will help
+make the following program more readable: 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Print</span> <span class="id" title="var">contra_implies_anything</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Coq responds:
+<pre>
+contra_implies_anything = 
+fun (P Q : Prop) (PandnotP : P /\ (P -&gt; False)) =&gt;
+match PandnotP with
+| conj P_holds notP_holds =&gt; False_ind Q (notP_holds P_holds)
+end
+     : forall P Q : Prop, P /\ ~ P -&gt; Q
+</pre>
+
+<div class="paragraph"> </div>
+
+The really interesting part of this is the body of the pattern match,
+<span class="inlinecode"><span class="id" title="var">False_rect</span></span> <span class="inlinecode"><span class="id" title="var">Q</span></span> <span class="inlinecode">(<span class="id" title="var">notP_holds</span></span> <span class="inlinecode"><span class="id" title="var">P_holds</span>)</span>.  It applies <span class="inlinecode"><span class="id" title="var">notP_holds</span></span> to <span class="inlinecode"><span class="id" title="var">P_holds</span></span>, thus
+transforming evidence for <span class="inlinecode"><span class="id" title="var">P</span></span> into evidence for <span class="inlinecode"><span class="id" title="var">False</span></span>. It passes that
+hypothetical evidence for <span class="inlinecode"><span class="id" title="var">False</span></span> to <span class="inlinecode"><span class="id" title="var">False_ind</span></span>, which as we've seen before
+uses such evidence to produce evidence for anything at all that we would
+like---in this case, <span class="inlinecode"><span class="id" title="var">Q</span></span>, its first argument.
+
+<div class="paragraph"> </div>
+
+Next, let's try a proof involving all the connectives we've seen: negation,
+conjunction, disjunction, and implication.  The following theorem shows how
+negation distributes over disjunction, and in so doing, produces a conjunction.
+The name we choose for this theorem is traditional and gives credit to Augustus
+De Morgan, a 19th century logician, even though the theorem was known far
+earlier in history. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">deMorgan</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">P</span> <span class="id" title="var">Q</span> : <span class="id" title="keyword">Prop</span>,<br/>
+&nbsp;&nbsp;~(<span class="id" title="var">P</span> \/ <span class="id" title="var">Q</span>) -&gt; ~<span class="id" title="var">P</span> /\ ~<span class="id" title="var">Q</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Intuition: if evidence for <span class="inlinecode"><span class="id" title="var">P</span></span> or <span class="inlinecode"><span class="id" title="var">Q</span></span> would lead to an explosion (i.e.,
+   <span class="inlinecode"><span class="id" title="var">False</span></span>), then evidence for <span class="inlinecode"><span class="id" title="var">P</span></span> would lead to an explosion, and evidence 
+   for <span class="inlinecode"><span class="id" title="var">Q</span></span> would also lead to an explosion. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">unfold</span> <span class="id" title="var">not</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">P</span> <span class="id" title="var">Q</span> <span class="id" title="var">PorQ_imp_false</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">split</span>.<br/>
+&nbsp;&nbsp;- <span class="id" title="tactic">intros</span> <span class="id" title="var">P_holds</span>. <span class="id" title="tactic">apply</span> <span class="id" title="var">PorQ_imp_false</span>. <span class="id" title="tactic">left</span>. <span class="id" title="tactic">assumption</span>.<br/>
+&nbsp;&nbsp;- <span class="id" title="tactic">intros</span> <span class="id" title="var">Q_holds</span>. <span class="id" title="tactic">apply</span> <span class="id" title="var">PorQ_imp_false</span>. <span class="id" title="tactic">right</span>. <span class="id" title="tactic">assumption</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Nothing we've done in that proof is new, but it is longer than any of our
+proofs so far.  The same is true of the program it produces: 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Print</span> <span class="id" title="var">deMorgan</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Coq responds:
+<pre>
+deMorgan = 
+fun (P Q : Prop) (PorQ_imp_false : P \/ Q -&gt; False) =&gt;
+conj (fun P_holds : P =&gt; PorQ_imp_false (or_introl P_holds))
+     (fun Q_holds : Q =&gt; PorQ_imp_false (or_intror Q_holds))
+       : forall P Q : Prop, ~ (P \/ Q) -&gt; ~ P /\ ~ Q
+</pre>
+
+<div class="paragraph"> </div>
+
+There is a second "De Morgan's Law", which says that negation distributes over
+conjunction, thus producing a disjunction.  But something seemingly goes very
+wrong when we try to prove it in Coq: 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">deMorgan2</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">P</span> <span class="id" title="var">Q</span> : <span class="id" title="keyword">Prop</span>,<br/>
+&nbsp;&nbsp;~(<span class="id" title="var">P</span> /\ <span class="id" title="var">Q</span>) -&gt; ~<span class="id" title="var">P</span> \/ ~<span class="id" title="var">Q</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Intuition: if evidence for P and Q would produce an explosion, then 
+either evidence for P would produce an explosion, or evidence for Q would. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">unfold</span> <span class="id" title="var">not</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">P</span> <span class="id" title="var">Q</span> <span class="id" title="var">PQ_imp_false</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">left</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">P_holds</span>. <span class="id" title="tactic">apply</span> <span class="id" title="var">PQ_imp_false</span>. <span class="id" title="tactic">split</span>. <span class="id" title="tactic">assumption</span>.<br/>
+<span class="id" title="keyword">Abort</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+When we get to the point in the proof above where we need to prove <span class="inlinecode"><span class="id" title="var">Q</span></span>, we
+have no means to do so.  (The same problem would occur for <span class="inlinecode"><span class="id" title="var">P</span></span> if instead of
+<span class="inlinecode"><span class="id" title="tactic">left</span></span> we had gone <span class="inlinecode"><span class="id" title="tactic">right</span></span>.)  Why does this happen?  One reason is that the
+intuition we gave above is wrong!  There's no reason that "if evidence for P and
+Q would produce an explosion" implies "either evidence for P would produce an
+explosion, or evidence for Q would". It's the combined evidence for <span class="inlinecode"><span class="id" title="var">P</span></span> and <span class="inlinecode"><span class="id" title="var">Q</span></span>
+that produces the explosion in that assumption---nothing is said about evidence
+for them individually.
+
+<div class="paragraph"> </div>
+
+But a deeper reason is that this theorem simply doesn't hold in Coq's logic:
+there isn't any way to prove it.  That might surprise you if you've studied some
+logic before, and you were taught that both De Morgan laws are sound reasoning
+principles.  Indeed they are in some logics, but not in others.
+
+<div class="paragraph"> </div>
+
+In <i>classical logic</i>, which is what you almost certainly would have studied
+before (e.g., in CS 2800), we are permitted to think of every proposition as
+having a <i>truth value</i>, which is either <span class="inlinecode"><span class="id" title="var">True</span></span> or <span class="inlinecode"><span class="id" title="var">False</span></span>.  And one way to prove
+a theorem is to construct a <i>truth table</i> showing what truth value a proposition
+has for any assignment of <span class="inlinecode"><span class="id" title="var">True</span></span> or <span class="inlinecode"><span class="id" title="var">False</span></span> to its variables. For example
+(writing <span class="inlinecode"><span class="id" title="var">T</span></span> and <span class="inlinecode"><span class="id" title="var">F</span></span> as abbreviations):
+
+<div class="paragraph"> </div>
+
+<pre>
+P  Q  ~(P/\Q) (~P \/ ~Q) (~(P/\Q) -&gt; (~P \/ ~Q))
+T  T  F       F          T
+T  F  T       T          T
+F  T  T       T          T
+F  F  T       T          T
+</pre>
+
+<div class="paragraph"> </div>
+
+For every possible assignment of truth values to <span class="inlinecode"><span class="id" title="var">P</span></span> and <span class="inlinecode"><span class="id" title="var">Q</span></span>, we get that the
+truth value of <span class="inlinecode">~(<span class="id" title="var">P</span>/\<span class="id" title="var">Q</span>)</span> <span class="inlinecode">-&gt;</span> <span class="inlinecode">(~<span class="id" title="var">P</span></span> <span class="inlinecode">\/</span> <span class="inlinecode">~<span class="id" title="var">Q</span>)</span> is <span class="inlinecode"><span class="id" title="var">True</span></span>.  So in classical logic,
+<span class="inlinecode">~(<span class="id" title="var">P</span>/\<span class="id" title="var">Q</span>)</span> <span class="inlinecode">-&gt;</span> <span class="inlinecode">(~<span class="id" title="var">P</span></span> <span class="inlinecode">\/</span> <span class="inlinecode">~<span class="id" title="var">Q</span>)</span> is a theorem.
+
+<div class="paragraph"> </div>
+
+But Coq uses a different logic called <i>constructive logic</i>.  Constructive logic
+is more convervative than classical logic, in that it always requires evidence
+to be produced as part of a proof.  As we saw above when we tried to prove
+<span class="inlinecode"><span class="id" title="var">deMorgan2</span></span>, there just isn't a way to construct evidence for <span class="inlinecode">~<span class="id" title="var">P</span></span> <span class="inlinecode">\/</span> <span class="inlinecode">~<span class="id" title="var">Q</span></span> out of
+evidence for <span class="inlinecode">~(<span class="id" title="var">P</span>/\<span class="id" title="var">Q</span>)</span>.  
+
+<div class="paragraph"> </div>
+
+There are many other propositions that are provable in classical logic but not
+in constructive logic.  Another pair of such propositions involves <i>double
+negation</i>:  <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">-&gt;</span> <span class="inlinecode">~~<span class="id" title="var">P</span></span> is provable in both logics, but <span class="inlinecode">~~<span class="id" title="var">P</span></span> <span class="inlinecode">-&gt;</span> <span class="inlinecode"><span class="id" title="var">P</span></span> is provable in
+classical logic and not provable in constructive logic.  Let's try proving both
+just to see what happens. 
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">p_imp_nnp</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">P</span>:<span class="id" title="keyword">Prop</span>, <span class="id" title="var">P</span> -&gt; ~~<span class="id" title="var">P</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Intuition: ~~P is (P -&gt; False) -&gt; False.  So the theorem could be
+   restated as P -&gt; (P -&gt; False) -&gt; False.  That's really just a syllogism,
+   with the first two arguments in the opposite order:
+<ul class="doclist">
+<li> P implies False.
+
+</li>
+<li> P holds.
+
+</li>
+<li> Therefore False holds. 
+</li>
+</ul>
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">unfold</span> <span class="id" title="var">not</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">P</span> <span class="id" title="var">evP</span> <span class="id" title="var">evPimpFalse</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">evPimpFalse</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">assumption</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+We could make that intuition even more apparent by proving a version of the
+syllogism theorem with its first two arguments swapped: 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">syllogism'</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">P</span> <span class="id" title="var">Q</span> : <span class="id" title="keyword">Prop</span>,<br/>
+&nbsp;&nbsp;<span class="id" title="var">P</span> -&gt; (<span class="id" title="var">P</span> -&gt; <span class="id" title="var">Q</span>) -&gt; <span class="id" title="var">Q</span>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">P</span> <span class="id" title="var">Q</span> <span class="id" title="var">evP</span> <span class="id" title="var">evPimpQ</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">evPimpQ</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">assumption</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Now we use <span class="inlinecode"><span class="id" title="var">syllogism'</span></span> to prove <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">-&gt;</span> <span class="inlinecode">~~<span class="id" title="var">P</span></span>: 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">p_imp_nnp'</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">P</span>:<span class="id" title="keyword">Prop</span>, <span class="id" title="var">P</span> -&gt; ~~<span class="id" title="var">P</span>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">unfold</span> <span class="id" title="var">not</span>. <span class="id" title="tactic">intros</span> <span class="id" title="var">P</span>. <span class="id" title="tactic">apply</span> <span class="id" title="var">syllogism'</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+In that proof, we have a new use for the <span class="inlinecode"><span class="id" title="tactic">apply</span></span> tactic: we use it with the
+name of a theorem we've already proved, because our goal is in fact that
+theorem.  In the resulting program, we saw this indeed becomes an application of
+the <span class="inlinecode"><span class="id" title="var">syllogism'</span></span> function: 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Print</span> <span class="id" title="var">p_imp_nnp'</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Coq responds:
+<pre>
+p_imp_nnp' = 
+fun P : Prop =&gt; syllogism' P False
+     : forall P : Prop, P -&gt; ~ ~ P
+</pre>
+
+<div class="paragraph"> </div>
+
+Now let's try the other direction for double negation:
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">nnp_imp_p</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">P</span> : <span class="id" title="keyword">Prop</span>, ~~<span class="id" title="var">P</span> -&gt; <span class="id" title="var">P</span>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">unfold</span> <span class="id" title="var">not</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">P</span> <span class="id" title="var">evNNP</span>.<br/>
+<span class="id" title="keyword">Abort</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Once we get past introducing assumptions in that proof, we're stuck. There's
+nothing we can do with <span class="inlinecode">(<span class="id" title="var">P</span></span> <span class="inlinecode">-&gt;</span> <span class="inlinecode"><span class="id" title="var">False</span>)</span> <span class="inlinecode">-&gt;</span> <span class="inlinecode"><span class="id" title="var">False</span></span> to prove <span class="inlinecode"><span class="id" title="var">P</span></span>. Why?  Because in
+constructive logic, to prove <span class="inlinecode"><span class="id" title="var">P</span></span>, we must produce evidence for <span class="inlinecode"><span class="id" title="var">P</span></span>.  Nothing in
+<span class="inlinecode">(<span class="id" title="var">P</span></span> <span class="inlinecode">-&gt;</span> <span class="inlinecode"><span class="id" title="var">False</span>)</span> <span class="inlinecode">-&gt;</span> <span class="inlinecode"><span class="id" title="var">False</span></span> gives us such evidence.  
+
+<div class="paragraph"> </div>
+
+That's very different from classical logic, where we could just construct a
+truth table:
+
+<div class="paragraph"> </div>
+
+<pre>
+P ~~P  (~~P -&gt; P)
+T T    T
+F F    T
+</pre>
+
+<div class="paragraph"> </div>
+
+Here's another even more brutally perplexing proposition that's provable in
+classical logic but not in constructive logic.  It's called <i>excluded middle</i>,
+because it says that every proposition or its negation must hold; there is no
+"middle ground": 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">excluded_middle</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">P</span>, <span class="id" title="var">P</span> \/ ~<span class="id" title="var">P</span>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">P</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">left</span>.<br/>
+<span class="id" title="keyword">Abort</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Whether we go left or right in the second step of that proof, we immediately
+get stuck.  If we go left, Coq challenges us to construct evidence for <span class="inlinecode"><span class="id" title="var">P</span></span>, but
+we don't have any.  If we go right, Coq challenges us to construct evidence for
+<span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">-&gt;</span> <span class="inlinecode"><span class="id" title="var">False</span></span>, but we don't have any. 
+
+<div class="paragraph"> </div>
+
+Yet in classical logic, excluded middle is easily proved by a truth table:
+<pre>
+P  ~P  (P \/ ~P)
+T  F   T
+F  T   T
+</pre>
+
+<div class="paragraph"> </div>
+
+Why does Coq use constructive logic rather than classical logic?  The reason
+goes back to why we started looking at Coq, namely, program verification.  We'd
+like to be able to extract verified programs.  Well, there simply is no program
+whose type is <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">\/</span> <span class="inlinecode">~<span class="id" title="var">P</span></span>, because such a program would have to use either
+<span class="inlinecode"><span class="id" title="var">or_introl</span></span> or <span class="inlinecode"><span class="id" title="var">or_intror</span></span> to construct its result, and it would have to
+magically guess which one to use, then magically somehow produce the appropriate
+evidence.  
+
+<div class="paragraph"> </div>
+
+Nonetheless, if all you want to do is reasoning in classical logic, and you
+don't care about extracting verified programs, Coq does support that in a
+library <span class="inlinecode"><span class="id" title="var">Coq.Logic.Classical</span></span>. We'll load that library now in a nested <span class="inlinecode"><span class="id" title="keyword">Module</span></span>,
+which restricts its influence just to that module so that we don't pollute the
+rest of this file. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="var">Coq.Logic.Classical</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Module</span> <span class="id" title="var">LetsDoClassicalReasoning</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">Coq.Logic.Classical</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Print</span> <span class="id" title="var">classic</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Coq responds:
+<pre>
+*** [ classic : forall P : Prop, P \/ ~ P ]
+</pre>
+
+<div class="paragraph"> </div>
+
+The <span class="inlinecode">***</span> indicates that <span class="inlinecode"><span class="id" title="var">classic</span></span> is an <i>axiom</i> that the library simply asserts
+without proof.  Using that axiom, all the usual theorems of classical logic can
+be proved, such as double negation: 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Print</span> <span class="id" title="var">NNPP</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Coq responds:
+<pre>
+NNPP = 
+fun (p : Prop) (H : (p -&gt; False) -&gt; False) =&gt;
+or_ind (fun H0 : p =&gt; H0) (fun NP : ~ p =&gt; False_ind p (H NP)) (classic p)
+     : forall p : Prop, ~ ~ p -&gt; p
+</pre>
+
+<div class="paragraph"> </div>
+
+You can see on the last line that <span class="inlinecode"><span class="id" title="var">NNPP</span></span> proves <span class="inlinecode">~~<span class="id" title="var">p</span></span> <span class="inlinecode">-&gt;</span> <span class="inlinecode"><span class="id" title="var">p</span></span>, which we couldn't
+prove above.  And you'll see that <span class="inlinecode"><span class="id" title="var">classic</span></span> shows up in the program to magically
+construct evidence of <span class="inlinecode"><span class="id" title="var">p</span></span> <span class="inlinecode">\/</span> <span class="inlinecode">~<span class="id" title="var">p</span></span>. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">LetsDoClassicalReasoning</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+<a name="lab10"></a><h2 class="section">Equality and implication</h2>
+
+
+<div class="paragraph"> </div>
+
+Let's return to the two connectives with which we started, equality and
+implication.  Earlier we didn't explain them fully, but now we're equipped to
+appreciate their definitions.
+
+<div class="paragraph"> </div>
+
+Recall how Coq defines equality:
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Locate</span> "=".<br/>
+<span class="id" title="keyword">Print</span> <span class="id" title="var">eq</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Coq responds:
+<pre>
+Inductive eq (A : Type) (x : A) : A -&gt; Prop :=  
+  eq_refl : x = x
+
+For eq: Argument A is implicit ...
+</pre>
+
+<div class="paragraph"> </div>
+
+Reading that carefully, we see that <span class="inlinecode"><span class="id" title="var">eq</span></span> is parameterized on 
+
+<div class="paragraph"> </div>
+
+<ul class="doclist">
+<li> a type <span class="inlinecode"><span class="id" title="var">A</span></span>, and
+
+<div class="paragraph"> </div>
+
+
+</li>
+<li> a value <span class="inlinecode"><span class="id" title="var">x</span></span> whose type is <span class="inlinecode"><span class="id" title="var">A</span></span>.
+
+</li>
+</ul>
+
+<div class="paragraph"> </div>
+
+We also see that <span class="inlinecode"><span class="id" title="var">A</span></span> is implicit, so let's use <span class="inlinecode">@<span class="id" title="var">eq</span></span> from now on in our
+discussion just to be clear about <span class="inlinecode"><span class="id" title="var">A</span></span>.
+
+<div class="paragraph"> </div>
+
+When we apply <span class="inlinecode">@<span class="id" title="var">eq</span></span> to a type <span class="inlinecode"><span class="id" title="var">A</span></span> and a value <span class="inlinecode"><span class="id" title="var">x</span></span>, we get back a function of
+type <span class="inlinecode"><span class="id" title="var">A</span></span> <span class="inlinecode">-&gt;</span> <span class="inlinecode"><span class="id" title="keyword">Prop</span></span>.  The idea is that function will take its argument, let's call
+it <span class="inlinecode"><span class="id" title="var">y</span></span>, and construct the proposition that asserts that <span class="inlinecode"><span class="id" title="var">x</span></span> and <span class="inlinecode"><span class="id" title="var">y</span></span> are equal.
+For example: 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">eq42</span> := @<span class="id" title="var">eq</span> <span class="id" title="var">nat</span> 42.<br/>
+<span class="id" title="keyword">Check</span> <span class="id" title="var">eq42</span>.<br/>
+<span class="id" title="keyword">Check</span> (<span class="id" title="var">eq42</span> 42).<br/>
+<span class="id" title="keyword">Check</span> (<span class="id" title="var">eq42</span> 43).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<pre>
+eq42 : nat -&gt; Prop
+eq42 42 : Prop
+eq42 43 : Prop
+</pre>
+
+<div class="paragraph"> </div>
+
+There's only one way to construct a value of type <span class="inlinecode"><span class="id" title="var">eq</span></span>, though, and that's with
+the <span class="inlinecode"><span class="id" title="var">eq_refl</span></span> constructor.  If we "desugar" the <span class="inlinecode">=</span> notation, that constructor
+has type <span class="inlinecode">@<span class="id" title="var">eq</span></span> <span class="inlinecode"><span class="id" title="var">A</span></span> <span class="inlinecode"><span class="id" title="var">x</span></span> <span class="inlinecode"><span class="id" title="var">x</span></span>, where <span class="inlinecode"><span class="id" title="var">x</span></span> must be of type <span class="inlinecode"><span class="id" title="var">A</span></span>. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Check</span> @<span class="id" title="var">eq_refl</span> <span class="id" title="var">nat</span> 42.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+<pre>
+@eq_refl nat 42 : 42 = 42
+</pre>
+
+<div class="paragraph"> </div>
+
+Note how the constructor above takes just a single argument of type <span class="inlinecode"><span class="id" title="var">nat</span></span>, not
+two arguments:  it will only ever show that argument is equal to itself, never
+to anything else.  There's literally no way to write an expression using
+<span class="inlinecode"><span class="id" title="var">eq_refl</span></span> to construct evidence that (e.g.) <span class="inlinecode">42</span> and <span class="inlinecode">43</span> are equal. 
+
+<div class="paragraph"> </div>
+
+So instead of using <span class="inlinecode"><span class="id" title="tactic">trivial</span></span>, we could directly use <span class="inlinecode"><span class="id" title="var">eq_refl</span></span> as a constructor
+to prove equalities, much like we directly used <span class="inlinecode"><span class="id" title="var">I</span></span> as a constructor to prove
+<span class="inlinecode"><span class="id" title="var">True</span></span> earlier in this file: 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">direct_eq</span> : 42 = 42.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">exact</span> (<span class="id" title="var">eq_refl</span> 42).<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Equality, therefore, is not something that has to be "baked in" to Coq, but
+rather something that is definable as an inductive type---much like <span class="inlinecode"><span class="id" title="var">and</span></span> and
+<span class="inlinecode"><span class="id" title="var">or</span></span>.
+
+<div class="paragraph"> </div>
+
+And now back to implication.  It, too, is defined. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Locate</span> "-&gt;".<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Coq responds:
+<pre>
+"A -&gt; B" := forall _ : A, B 
+</pre>
+
+<div class="paragraph"> </div>
+
+That is, <span class="inlinecode"><span class="id" title="var">A</span></span> <span class="inlinecode">-&gt;</span> <span class="inlinecode"><span class="id" title="var">B</span></span> is really just syntactic sugar for <span class="inlinecode"><span class="id" title="keyword">forall</span></span> <span class="inlinecode">(<span class="id" title="var">_</span>:<span class="id" title="var">A</span>),</span> <span class="inlinecode"><span class="id" title="var">B</span></span>, where
+we've added some parentheses for a little bit more clarity. Still, that
+expression is tricky to read because of the wildcard in it. It might help if we
+made <span class="inlinecode"><span class="id" title="var">A</span></span> and <span class="inlinecode"><span class="id" title="var">B</span></span> concrete, for example, if <span class="inlinecode"><span class="id" title="var">A</span></span> is <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">/\</span> <span class="inlinecode"><span class="id" title="var">Q</span></span> and <span class="inlinecode"><span class="id" title="var">B</span></span> is <span class="inlinecode"><span class="id" title="var">Q</span></span>, where
+<span class="inlinecode"><span class="id" title="var">P</span></span> and <span class="inlinecode"><span class="id" title="var">Q</span></span> are propositions. Then we could think of the type <span class="inlinecode"><span class="id" title="keyword">forall</span></span> <span class="inlinecode">(<span class="id" title="var">_</span></span> <span class="inlinecode">:</span> <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">/\</span>
+<span class="inlinecode"><span class="id" title="var">Q</span>),</span> <span class="inlinecode"><span class="id" title="var">Q</span></span> as follows:
+
+<div class="paragraph"> </div>
+
+<ul class="doclist">
+<li> <span class="inlinecode">(<span class="id" title="var">_</span></span> <span class="inlinecode">:</span> <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">/\</span> <span class="inlinecode"><span class="id" title="var">Q</span>)</span> means an unnamed value of type <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">/\</span> <span class="inlinecode"><span class="id" title="var">Q</span></span>.  Using the evidence 
+  interpretation we've been developing throughout this file, that value would be 
+  evidence that <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">/\</span> <span class="inlinecode"><span class="id" title="var">Q</span></span> holds.  It's unnamed because it's not used on the
+  right-hand side.
+
+<div class="paragraph"> </div>
+
+
+</li>
+<li> A value of type <span class="inlinecode"><span class="id" title="var">Q</span></span> would be evidence for <span class="inlinecode"><span class="id" title="var">Q</span></span>.
+
+<div class="paragraph"> </div>
+
+
+</li>
+<li> So a value of type <span class="inlinecode"><span class="id" title="keyword">forall</span></span> <span class="inlinecode">(<span class="id" title="var">_</span></span> <span class="inlinecode">:</span> <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">/\</span> <span class="inlinecode"><span class="id" title="var">Q</span>),</span> <span class="inlinecode"><span class="id" title="var">Q</span></span> would be a "thing" that
+  for any piece of evidence that <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">/\</span> <span class="inlinecode"><span class="id" title="var">Q</span></span> holds can produce evidence
+  that <span class="inlinecode"><span class="id" title="var">Q</span></span> holds.
+
+</li>
+</ul>
+
+<div class="paragraph"> </div>
+
+What is such a "thing"?  A function!  It transforms evidence for one proposition
+into evidence for another proposition.  
+
+<div class="paragraph"> </div>
+
+So of all the logic we've coded up in Coq in this file, the only truly primitive
+pieces are <span class="inlinecode"><span class="id" title="keyword">Inductive</span></span> definitions and <span class="inlinecode"><span class="id" title="keyword">forall</span></span> types. Everything
+else---equality, implication, conjunction, disjunction, true, false,
+negation---can all be expressed in terms of those two primitives.
+
+<div class="paragraph"> </div>
+
+And although we had to learn many tactics, every proof we constructed with them
+was really just a program that used functions, application, and pattern
+matching.
+
+<div class="paragraph"> </div>
+
+
+<div class="paragraph"> </div>
+
+<a name="lab11"></a><h2 class="section">Tautologies</h2>
+
+
+<div class="paragraph"> </div>
+
+(Or, "How to make the computer do your CS 2800 logic homework for you".)
+
+<div class="paragraph"> </div>
+
+We needed to learn the tactics and definitions above for the more complicated
+proofs we will later want to do in Coq.  But if all you care about is proving
+simple logical propositions, there's a tactic for that: <span class="inlinecode"><span class="id" title="tactic">tauto</span></span>.  It will
+succeed in finding a proof of any propositional <i>tautology</i>, which is a formula
+that must always hold regardless of the values of variables in it.
+
+<div class="paragraph"> </div>
+
+For example, one of the most complicated proofs we did above was De Morgan's
+law.  Here it is in just one tactic: 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">deMorgan'</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">P</span> <span class="id" title="var">Q</span> : <span class="id" title="keyword">Prop</span>,<br/>
+&nbsp;&nbsp;~(<span class="id" title="var">P</span> \/ <span class="id" title="var">Q</span>) -&gt; ~<span class="id" title="var">P</span> /\ ~<span class="id" title="var">Q</span>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">tauto</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Print</span> <span class="id" title="var">deMorgan'</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Coq responds:
+
+<div class="paragraph"> </div>
+
+<pre>
+deMorgan' = 
+fun (P Q : Prop) (H : ~ (P \/ Q)) =&gt;
+let H0 := (fun H0 : P =&gt; H (or_introl H0)) : P -&gt; False in
+let H1 := (fun H1 : Q =&gt; H (or_intror H1)) : Q -&gt; False in
+conj (fun H2 : P =&gt; let H3 := H0 H2 : False in False_ind False H3)
+  (fun H2 : Q =&gt; let H3 := H1 H2 : False in False_ind False H3)
+     : forall P Q : Prop, ~ (P \/ Q) -&gt; ~ P /\ ~ Q
+</pre>
+
+<div class="paragraph"> </div>
+
+That's a bit more complicated of a proof than the one we constructed ourselves,
+mainly because of the <span class="inlinecode"><span class="id" title="keyword">let</span></span> expressions, but it still is correct. 
+
+<div class="paragraph"> </div>
+
+So if your CS 2800 prof wants you to prove a propositional tautology, and if
+it's a proposition that holds in constructive logic, Coq's got your back: just
+use <span class="inlinecode"><span class="id" title="tactic">tauto</span></span> to do it.  
+
+<div class="paragraph"> </div>
+
+But don't tell your 2800 prof I told you that.
+
+<div class="paragraph"> </div>
+
+<a name="lab12"></a><h2 class="section">Summary</h2>
+
+
+<div class="paragraph"> </div>
+
+Coq's built-in logic is constructive:  it isn't sufficient to argue that
+a proposition must be true or false; rather, we have to construct evidence
+for the proposition.  Programs are how we construct and transform evidence.
+All of the propositional connectives, except implication, are "coded up"
+in Coq using inductive types, and proofs about them routinely use pattern
+matching and function application.
+
+<div class="paragraph"> </div>
+
+<a name="lab13"></a><h2 class="section">Terms and concepts</h2>
+
+
+<div class="paragraph"> </div>
+
+<ul class="doclist">
+<li> assumption
+
+</li>
+<li> classical logic
+
+</li>
+<li> conjunction
+
+</li>
+<li> constructive logic
+
+</li>
+<li> constructor
+
+</li>
+<li> contradiction
+
+</li>
+<li> De Morgan's laws
+
+</li>
+<li> disjunction
+
+</li>
+<li> double negation
+
+</li>
+<li> evidence
+
+</li>
+<li> excluded middle
+
+</li>
+<li> implication
+
+</li>
+<li> inductive type
+
+</li>
+<li> negation
+
+</li>
+<li> Principle of Explosion
+
+</li>
+<li> <span class="inlinecode"><span class="id" title="keyword">Prop</span></span>
+
+</li>
+<li> proposition
+
+</li>
+<li> reflexivity
+
+</li>
+<li> <span class="inlinecode"><span class="id" title="keyword">Set</span></span>
+
+</li>
+<li> syllogism
+
+</li>
+<li> tautology
+
+</li>
+<li> transitivity
+
+</li>
+<li> truth table
+
+</li>
+</ul>
+
+<div class="paragraph"> </div>
+
+<a name="lab14"></a><h2 class="section">Tactics</h2>
+
+
+<div class="paragraph"> </div>
+
+<ul class="doclist">
+<li> <span class="inlinecode"><span class="id" title="tactic">apply</span></span>
+
+</li>
+<li> <span class="inlinecode"><span class="id" title="tactic">assumption</span></span>
+
+</li>
+<li> <span class="inlinecode"><span class="id" title="var">contradiction</span></span>
+
+</li>
+<li> <span class="inlinecode"><span class="id" title="tactic">destruct</span>..<span class="id" title="keyword">as</span></span>
+
+</li>
+<li> <span class="inlinecode"><span class="id" title="tactic">exact</span></span>
+
+</li>
+<li> <span class="inlinecode"><span class="id" title="tactic">left</span></span>
+
+</li>
+<li> <span class="inlinecode"><span class="id" title="tactic">right</span></span>
+
+</li>
+<li> <span class="inlinecode"><span class="id" title="tactic">split</span></span>
+
+</li>
+<li> <span class="inlinecode"><span class="id" title="tactic">tauto</span></span>
+
+</li>
+<li> tacticals: nested bullets <span class="inlinecode">-</span>, <span class="inlinecode">*</span>, <span class="inlinecode">+</span>
+
+</li>
+</ul>
+
+<div class="paragraph"> </div>
+
+<a name="lab15"></a><h2 class="section">Further reading</h2>
+
+
+<div class="paragraph"> </div>
+
+<ul class="doclist">
+<li> <i>Software Foundations, Volume 1: Logical Foundations</i>. 
+  <a href="https://softwarefoundations.cis.upenn.edu/lf-current/Logic.html">
+  Chapter 6: Logic.</a>
+
+<div class="paragraph"> </div>
+
+
+</li>
+<li> <i>Interactive Theorem Proving and Program Development</i>.
+  Chapters 5 and 8.2. Available 
+  <a href="https://newcatalog.library.cornell.edu/catalog/10131206">
+  online from the Cornell library</a>.
+
+</li>
+</ul>
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+</div>
+</div>
+
+<div id="footer">
+<hr/><a href="index.html">Index</a><hr/>This page has been generated by <a href="http://coq.inria.fr/">coqdoc</a>
+</div>
+
+</div>
+
+</body>
+</html>

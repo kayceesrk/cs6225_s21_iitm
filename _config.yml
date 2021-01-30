@@ -1,0 +1,26 @@
+# Site settings
+title: CS6225 Spring 2020
+subtitle: Programs and Proofs
+baseurl: "/cs6225_s20_iitm" # the subpath of your site, e.g. /blog/
+url: "http://kayceesrk.github.io" # the base hostname & protocol for your site
+syllabus: "http://www.cse.iitm.ac.in/course_details.php?arg=MTk="
+githubdir: "kayceesrk/cs6225_s20_iitm"
+
+# Author/user information
+email: kcsrk@iitm.ac.in
+twitter_username: kc_srk
+github_username:  kayceesrk
+authorurl: "http://kcsrk.info"
+address: |
+    Department of Computer Science and Engineering
+    BSB 371, Indian Institute of Technology, Madras
+    Chennai, India 600036
+
+# Build settings
+markdown: kramdown
+
+# Other options
+permalink: blog/:year/:month/:title
+excerpt_separator: "<!--more-->"
+
+include: ['_images', '_css']

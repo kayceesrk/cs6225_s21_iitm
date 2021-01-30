@@ -1,0 +1,2206 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<link href="coqdoc.css" rel="stylesheet" type="text/css" />
+<title>Induction</title>
+</head>
+
+<body>
+
+<div id="page">
+
+<div id="header">
+</div>
+
+<div id="main">
+
+<h1 class="libtitle">Library Induction</h1>
+
+<div class="code">
+</div>
+
+<div class="doc">
+<a name="lab1"></a><h1 class="section">Induction in Coq</h1>
+
+
+<div class="paragraph"> </div>
+
+  From: https://www.cs.cornell.edu/courses/cs3110/2018sp/l/22-coq-induction/notes.v
+<hr/>
+
+<i>
+Topics:
+
+<div class="paragraph"> </div>
+
+<ul class="doclist">
+<li> recursive functions
+
+</li>
+<li> induction on lists
+
+</li>
+<li> induction on natural numbers
+
+</li>
+<li> rings and fields
+
+</li>
+<li> induction principles
+
+</li>
+</ul>
+
+<div class="paragraph"> </div>
+
+</i>
+<hr/>
+
+
+<div class="paragraph"> </div>
+
+We'll need the list library for these notes.
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">List</span>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">ListNotations</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+
+<div class="paragraph"> </div>
+
+<a name="lab2"></a><h2 class="section">Recursive functions</h2>
+
+
+<div class="paragraph"> </div>
+
+The <span class="inlinecode"><span class="id" title="var">List</span></span> library defines the list append operator, which in Coq is written as
+infix operator <span class="inlinecode">++</span>, or as prefix function <span class="inlinecode"><span class="id" title="var">app</span></span>.  In OCaml, the same operator
+is written <span class="inlinecode">@</span>.  In OCaml's standard library, you'll recall that append
+is defined as follows:
+
+<div class="paragraph"> </div>
+
+<pre>
+let rec append lst1 lst2 =
+  match lst1 with
+  | [] -&gt; lst2
+  | h::t -&gt; h :: (append t lst2)
+</pre>
+
+<div class="paragraph"> </div>
+
+The Coq equivalent of that would be: 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">append</span> {<span class="id" title="var">A</span> : <span class="id" title="keyword">Type</span>} (<span class="id" title="var">lst1</span> : <span class="id" title="var">list</span> <span class="id" title="var">A</span>) (<span class="id" title="var">lst2</span> : <span class="id" title="var">list</span> <span class="id" title="var">A</span>) :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">lst1</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">nil</span> =&gt; <span class="id" title="var">lst2</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">h</span>::<span class="id" title="var">t</span> =&gt; <span class="id" title="var">h</span> :: (<span class="id" title="var">append</span> <span class="id" title="var">t</span> <span class="id" title="var">lst2</span>)<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+The <span class="inlinecode"><span class="id" title="keyword">Fixpoint</span></span> keyword is similar to a <span class="inlinecode"><span class="id" title="keyword">let</span></span> <span class="inlinecode"><span class="id" title="keyword">rec</span></span> definition in OCaml. The
+braces around <span class="inlinecode"><span class="id" title="var">A</span></span> <span class="inlinecode">:</span> <span class="inlinecode"><span class="id" title="keyword">Type</span></span> in that definition make the <span class="inlinecode"><span class="id" title="var">A</span></span> argument implicit,
+hence we don't have to provide it at the recursive call to <span class="inlinecode"><span class="id" title="var">append</span></span> in the
+second branch of the pattern match.  Without the braces, we'd have to write the
+function as follows: 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">append'</span> (<span class="id" title="var">A</span> : <span class="id" title="keyword">Type</span>) (<span class="id" title="var">lst1</span> : <span class="id" title="var">list</span> <span class="id" title="var">A</span>) (<span class="id" title="var">lst2</span> : <span class="id" title="var">list</span> <span class="id" title="var">A</span>) :=<br/>
+<span class="id" title="keyword">match</span> <span class="id" title="var">lst1</span> <span class="id" title="keyword">with</span><br/>
+| <span class="id" title="var">nil</span> =&gt; <span class="id" title="var">lst2</span><br/>
+| <span class="id" title="var">h</span>::<span class="id" title="var">t</span> =&gt; <span class="id" title="var">h</span> :: (<span class="id" title="var">append'</span> <span class="id" title="var">A</span> <span class="id" title="var">t</span> <span class="id" title="var">lst2</span>)<br/>
+<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+The actual definition of <span class="inlinecode">++</span> in the Coq standard library is a little more
+complicated, but it's essentially the same idea.  Here's that definition:
+
+<div class="paragraph"> </div>
+
+<pre>
+Definition app (A : Type) : list A -&gt; list A -&gt; list A :=
+  fix app' lst1 lst2 :=
+    match lst1 with
+    | nil =&gt; lst2
+    | h :: t =&gt; h :: app' t lst2
+    end.
+</pre>
+
+<div class="paragraph"> </div>
+
+The Coq <span class="inlinecode"><span class="id" title="keyword">fix</span></span> keyword is similar to a <span class="inlinecode"><span class="id" title="keyword">let</span></span> <span class="inlinecode"><span class="id" title="keyword">rec</span></span> expression in OCaml, but where
+the body of the expression is implicit:  Coq <span class="inlinecode"><span class="id" title="keyword">fix</span></span> <span class="inlinecode"><span class="id" title="var">f</span></span> <span class="inlinecode"><span class="id" title="var">x1</span></span> <span class="inlinecode">..</span> <span class="inlinecode"><span class="id" title="var">xn</span></span> <span class="inlinecode">:=</span> <span class="inlinecode"><span class="id" title="var">e</span></span> is like OCaml
+<span class="inlinecode"><span class="id" title="keyword">let</span></span> <span class="inlinecode"><span class="id" title="keyword">rec</span></span> <span class="inlinecode"><span class="id" title="var">f</span></span> <span class="inlinecode"><span class="id" title="var">x1</span></span> <span class="inlinecode">..</span> <span class="inlinecode"><span class="id" title="var">xn</span></span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">e</span></span> <span class="inlinecode"><span class="id" title="tactic">in</span></span> <span class="inlinecode"><span class="id" title="var">f</span></span>.  So in OCaml we could rephrase the above
+definition as follows:
+
+<div class="paragraph"> </div>
+
+<pre>
+let app : 'a list -&gt; 'a list -&gt; 'a list =
+  let rec app' lst1 lst2 =
+    match lst1 with
+    | [] -&gt; lst2
+    | h :: t -&gt; h :: app' t lst2
+  in
+  app'
+</pre>
+
+<div class="paragraph"> </div>
+
+Now that we know how Coq defines <span class="inlinecode">++</span>, let's prove a theorem about it.
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">nil_app</span> : <span class="id" title="keyword">forall</span> (<span class="id" title="var">A</span>:<span class="id" title="keyword">Type</span>) (<span class="id" title="var">lst</span> : <span class="id" title="var">list</span> <span class="id" title="var">A</span>),<br/>
+&nbsp;&nbsp;[] ++ <span class="id" title="var">lst</span> = <span class="id" title="var">lst</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Intuition:  appending the empty list to <span class="inlinecode"><span class="id" title="var">lst</span></span> immediately returns
+    <span class="inlinecode"><span class="id" title="var">lst</span></span>, by the definition of <span class="inlinecode">++</span>. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">A</span> <span class="id" title="var">lst</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">simpl</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">trivial</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+The second step in that proof simplifies <span class="inlinecode">[]</span> <span class="inlinecode">++</span> <span class="inlinecode"><span class="id" title="var">lst</span></span> to <span class="inlinecode"><span class="id" title="var">lst</span></span>.  That's
+because of how <span class="inlinecode">++</span> is defined:  it pattern matches against its first argument,
+which here is <span class="inlinecode">[]</span>, hence simply returns its second argument.
+
+<div class="paragraph"> </div>
+
+Next, let's prove that appending nil on the right-hand side also results in
+<span class="inlinecode"><span class="id" title="var">lst</span></span>: 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">app_nil</span> : <span class="id" title="keyword">forall</span> (<span class="id" title="var">A</span>:<span class="id" title="keyword">Type</span>) (<span class="id" title="var">lst</span> : <span class="id" title="var">list</span> <span class="id" title="var">A</span>),<br/>
+&nbsp;&nbsp;<span class="id" title="var">lst</span> ++ [] = <span class="id" title="var">lst</span>.<br/>
+
+<br/>
+
+<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">A</span> <span class="id" title="var">lst</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">lst</span> <span class="id" title="keyword">as</span> [ | <span class="id" title="var">h</span> <span class="id" title="var">t</span>].<br/>
+&nbsp;&nbsp;- <span class="id" title="tactic">trivial</span>.<br/>
+&nbsp;&nbsp;- <span class="id" title="tactic">simpl</span>. <span class="id" title="keyword">Abort</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+When we get to the end of that proof, we are trying to show that <span class="inlinecode"><span class="id" title="var">h</span></span> <span class="inlinecode">::</span> <span class="inlinecode">(<span class="id" title="var">t</span></span> <span class="inlinecode">++</span>
+<span class="inlinecode">[])</span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">h</span></span> <span class="inlinecode">::</span> <span class="inlinecode"><span class="id" title="var">t</span></span>.  There's no way to make progress on that, because we can't
+simplify <span class="inlinecode"><span class="id" title="var">t</span></span> <span class="inlinecode">++</span> <span class="inlinecode">[]</span> to just <span class="inlinecode"><span class="id" title="var">t</span></span>.  Of course as humans we know that holds.  But to
+Coq, that's a fact that hasn't yet been proved.  Indeed, it is an instance of
+the theorem we're currently trying to prove!
+
+<div class="paragraph"> </div>
+
+What's going wrong here is that case analysis is not a sufficiently powerful
+proof technique for this theorem.  We need to be able to <i>recursively</i> apply the
+theorem we're trying to prove to smaller lists.  That's where <i>induction</i> comes
+into play.
+
+<div class="paragraph"> </div>
+
+
+<div class="paragraph"> </div>
+
+<a name="lab3"></a><h2 class="section">Induction on lists</h2>
+
+
+<div class="paragraph"> </div>
+
+<i>Induction</i> is a proof technique that you will have encountered in math
+classes before---including CS 2800.  It is useful when you want to prove
+that some property holds of all the members of an infinite set, such as
+the natural numbers, as well as lists, trees, and other data types.
+
+<div class="paragraph"> </div>
+
+One classic metaphor for induction is <i>falling dominos</i>:  if you arrange some
+dominos such that each domino, when it falls, will knock over the next domino,
+and if you knock over the first domino, then all the dominos will fall. Another
+classic metaphor for induction is a <i>ladder</i>:  if you can reach the first rung,
+and if for any given rung the next rung can be reached, then you can reach any
+rung you wish.  (As long as you're not afraid of heights.)
+
+<div class="paragraph"> </div>
+
+What both of those metaphors have in common is
+
+<div class="paragraph"> </div>
+
+<ul class="doclist">
+<li> a <i>base case</i>, in which something is done first.  For the dominos, it's
+  knocking over the first domino; for the ladder, it's climbing the first rung.
+  And,
+
+<div class="paragraph"> </div>
+
+
+</li>
+<li> an <i>inductive case</i>, in which a step is taken from one thing to the
+  the next.  For the dominos, it's one domino knocking over the next; for the
+  ladder, it's literally taking the step from one rung to the next.  In both
+  cases, it must actually be possible for the action to occur:  if the dominos
+  or the rungs were spaced too far apart, then progress would stop.
+
+</li>
+</ul>
+
+<div class="paragraph"> </div>
+
+A proof by induction likewise has a base case and an inductive case.
+Here's the structure of a proof by induction on a list:
+
+<div class="paragraph"> </div>
+
+<pre>
+Theorem.  For all lists lst, P(lst).
+
+Proof.  By induction on lst.
+
+Case:  lst = nil
+Show:  P(nil)
+
+Case:  lst = h::t
+IH:    P(t)
+Show:  P(h::t)
+
+QED.
+</pre>
+
+<div class="paragraph"> </div>
+
+The <i>base case</i> of a proof by induction on lists is for when the list is empty.
+The <i>inductive case</i> is when the list is non-empty, hence is the cons of a head
+to a tail.  In the inductive case, we get to assume an <i>inductive hypothesis</i>,
+which is that the property <span class="inlinecode"><span class="id" title="var">P</span></span> holds of the tail.
+
+<div class="paragraph"> </div>
+
+In the metaphors above, the inductive hypothesis is the assumption that we've
+already reached some particular domino or rung.  From there, the metaphorical
+work we do in the inductive case of the proof is to show that from that domino
+or rung, we can reach the next one.
+
+<div class="paragraph"> </div>
+
+An inductive hypothesis is exactly the kind of assumption we needed to get our
+proof about appending nil to go through.
+
+<div class="paragraph"> </div>
+
+Here's how that proof could be written:
+
+<div class="paragraph"> </div>
+
+<pre>
+Theorem:  for all lists lst, lst ++ nil = lst.
+
+Proof:  by induction on lst.
+P(lst) = lst ++ nil = lst.
+
+Case:  lst = nil
+Show:
+  P(nil)
+= nil ++ nil = nil
+= nil = nil
+
+Case:  lst = h::t
+IH: P(t) = (t ++ nil = t)
+Show
+  P(h::t)
+= (h::t) ++ nil = h::t
+= h::(t ++ nil) = h::t     // by definition of ++
+= h::t = h::t              // by IH
+
+QED
+</pre>
+
+<div class="paragraph"> </div>
+
+In Coq, we could prove that theorem as follows:
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">app_nil</span> : <span class="id" title="keyword">forall</span> (<span class="id" title="var">A</span>:<span class="id" title="keyword">Type</span>) (<span class="id" title="var">lst</span> : <span class="id" title="var">list</span> <span class="id" title="var">A</span>),<br/>
+&nbsp;&nbsp;<span class="id" title="var">lst</span> ++ <span class="id" title="var">nil</span> = <span class="id" title="var">lst</span>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+<span class="id" title="tactic">intros</span> <span class="id" title="var">A</span> <span class="id" title="var">lst</span>. <span class="id" title="tactic">induction</span> <span class="id" title="var">lst</span> <span class="id" title="keyword">as</span> [ | <span class="id" title="var">h</span> <span class="id" title="var">t</span> <span class="id" title="var">IH</span>].<br/>
+- <span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">trivial</span>.<br/>
+- <span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">rewrite</span> -&gt; <span class="id" title="var">IH</span>. <span class="id" title="tactic">trivial</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+The tactics used in that proof correspond exactly to the non-Coq proof
+above.
+
+<div class="paragraph"> </div>
+
+The <span class="inlinecode"><span class="id" title="tactic">induction</span></span> tactic is new to us.  It initiates a proof by induction on its
+argument, in this case <span class="inlinecode"><span class="id" title="var">lst</span></span>, and provides names for the variables to be used in
+the cases.  There aren't any new variables in the base case, but the inductive
+case has variables for the head of the list, the tail, and the inductive
+hypothesis.  You could leave out those variables and simply write <span class="inlinecode"><span class="id" title="tactic">induction</span></span>
+<span class="inlinecode"><span class="id" title="var">lst</span>.</span>, but that leads to a less human-readable proof.
+
+<div class="paragraph"> </div>
+
+In the inductive case, we use the <span class="inlinecode"><span class="id" title="tactic">rewrite</span></span> <span class="inlinecode">-&gt;</span> tactic to rewrite <span class="inlinecode"><span class="id" title="var">t</span></span> <span class="inlinecode">++</span>
+<span class="inlinecode"><span class="id" title="var">nil</span></span> to <span class="inlinecode"><span class="id" title="var">t</span></span>.  The <span class="inlinecode"><span class="id" title="var">IH</span></span> says those terms are equal.  That tactic replaces the
+left-hand side of the equality with the right-hand side, wherever the left-hand
+side appears in the subgoal. It's also possible to rewrite from right to left
+with the <span class="inlinecode"><span class="id" title="tactic">rewrite</span></span> <span class="inlinecode">&lt;-</span> tactic.  If you leave out the arrow, Coq assumes that
+you mean <span class="inlinecode">-&gt;</span>.
+
+<div class="paragraph"> </div>
+
+Here's another theorem we can prove in exactly the same manner. This
+theorem shows that append is <i>associative</i>.
+
+<div class="paragraph"> </div>
+
+<pre>
+Theorem:  forall lists l1 l2 l3, l1 ++ (l2 ++ l3) = (l1 ++ l2) ++ l3.
+
+Proof: by induction on l1.
+P(l1) = l1 ++ (l2 ++ l3) = (l1 ++ l2) ++ l3
+
+Case:  l1 = nil
+Show:
+  P(nil)
+= nil ++ (l2 ++ l3) = (nil ++ l2) ++ l3
+= l2 ++ l3 = l2 ++ l3   // simplifying ++, twice
+
+Case:  l1 = h::t
+IH:  P(t) = t ++ (l2 ++ l3) = (t ++ l2) ++ l3
+Show:
+  P(h::t)
+= h::t ++ (l2 ++ l3) = (h::t ++ l2) ++ l3
+= h::(t ++ (l2 ++ l3)) = h::((t ++ l2) ++ l3)  // simplifying ++, thrice
+= h::((t ++ l2) ++ l3) = h::((t ++ l2) ++ l3)  // by IH
+
+QED
+</pre>
+
+<div class="paragraph"> </div>
+
+In Coq, that proof looks more or less identical to our previous Coq proof
+about append and nil:
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">app_assoc</span> : <span class="id" title="keyword">forall</span> (<span class="id" title="var">A</span>:<span class="id" title="keyword">Type</span>) (<span class="id" title="var">l1</span> <span class="id" title="var">l2</span> <span class="id" title="var">l3</span> : <span class="id" title="var">list</span> <span class="id" title="var">A</span>),<br/>
+&nbsp;&nbsp;<span class="id" title="var">l1</span> ++ (<span class="id" title="var">l2</span> ++ <span class="id" title="var">l3</span>) = (<span class="id" title="var">l1</span> ++ <span class="id" title="var">l2</span>) ++ <span class="id" title="var">l3</span>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">A</span> <span class="id" title="var">l1</span> <span class="id" title="var">l2</span> <span class="id" title="var">l3</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">induction</span> <span class="id" title="var">l1</span> <span class="id" title="keyword">as</span> [ | <span class="id" title="var">h</span> <span class="id" title="var">t</span> <span class="id" title="var">IH</span>].<br/>
+&nbsp;&nbsp;- <span class="id" title="tactic">trivial</span>.<br/>
+&nbsp;&nbsp;- <span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">rewrite</span> -&gt; <span class="id" title="var">IH</span>. <span class="id" title="tactic">trivial</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+<a name="lab4"></a><h2 class="section">Induction on natural numbers</h2>
+
+
+<div class="paragraph"> </div>
+
+One of the classic theorems proved by induction is that <span class="inlinecode">0</span> <span class="inlinecode">+</span> <span class="inlinecode">1</span> <span class="inlinecode">+</span> <span class="inlinecode">...</span> <span class="inlinecode">+</span> <span class="inlinecode"><span class="id" title="var">n</span></span> is
+equal to <span class="inlinecode"><span class="id" title="var">n</span></span> <span class="inlinecode">*</span> <span class="inlinecode">(<span class="id" title="var">n</span>+1)</span> <span class="inlinecode">/</span> <span class="inlinecode">2</span>.  It uses proof by induction on the natural numbers,
+which are the non-negative integers.  The structure of a proof by induction on
+the naturals is as follows:
+
+<div class="paragraph"> </div>
+
+<pre>
+Theorem.  For all natural numbers n, P(n).
+
+Proof.  By induction on n.
+
+Case:  n = 0
+Show:  P(0)
+
+Case:  n = k+1
+IH:    P(k)
+Show:  P(k+1)
+
+QED.
+</pre>
+
+<div class="paragraph"> </div>
+
+The base case is for zero, the smallest natural number.  The inductive case
+assumes that P holds of k, then shows that P holds of k+1.
+
+<div class="paragraph"> </div>
+
+The <span class="inlinecode"><span class="id" title="tactic">induction</span></span> tactic in Coq works for inductive types---that is, types defined
+with the <span class="inlinecode"><span class="id" title="keyword">Inductive</span></span> keyword.  You might, therefore, suspect that if we're going
+to do induction over <span class="inlinecode"><span class="id" title="var">nat</span></span>s, the type <span class="inlinecode"><span class="id" title="var">nat</span></span> must be inductively defined.  Indeed
+it is.  There is a famous inductive definition of the natural numbers that is
+credited to Giuseppe Peano (1858-1932).  In OCaml, that definition would be:
+
+<div class="paragraph"> </div>
+
+<pre>
+type nat = O | S of nat
+</pre>
+
+<div class="paragraph"> </div>
+
+The <span class="inlinecode"><span class="id" title="var">O</span></span> constructor (that's the letter capital O) represents zero.
+The <span class="inlinecode"><span class="id" title="var">S</span></span> constructor represents the successor function---that is, the
+function that adds one to its argument.  So:
+
+<div class="paragraph"> </div>
+
+<ul class="doclist">
+<li> 0 is <span class="inlinecode"><span class="id" title="var">O</span></span>
+
+</li>
+<li> 1 is <span class="inlinecode"><span class="id" title="var">S</span></span> <span class="inlinecode"><span class="id" title="var">O</span></span>
+
+</li>
+<li> 2 is <span class="inlinecode"><span class="id" title="var">S</span></span> <span class="inlinecode">(<span class="id" title="var">S</span></span> <span class="inlinecode"><span class="id" title="var">O</span>)</span>
+
+</li>
+<li> 3 is <span class="inlinecode"><span class="id" title="var">S</span></span> <span class="inlinecode">(<span class="id" title="var">S</span></span> <span class="inlinecode">(<span class="id" title="var">S</span></span> <span class="inlinecode"><span class="id" title="var">O</span>))</span>
+
+</li>
+<li> etc.
+
+</li>
+</ul>
+
+<div class="paragraph"> </div>
+
+This is a kind of <i>unary</i> representation of the naturals, in which we repeat
+the symbol <span class="inlinecode"><span class="id" title="var">S</span></span> a total of <span class="inlinecode"><span class="id" title="var">n</span></span> times to represent the natural number <span class="inlinecode"><span class="id" title="var">n</span></span>.
+
+<div class="paragraph"> </div>
+
+The Coq definition of <span class="inlinecode"><span class="id" title="var">nat</span></span> is much the same:
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Print</span> <span class="id" title="var">nat</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Coq responds with output that is equivalent to the following:
+<pre>
+Inductive nat : Set :=
+  | O : nat
+  | S : nat -&gt; nat
+</pre>
+
+<div class="paragraph"> </div>
+
+That is, <span class="inlinecode"><span class="id" title="var">nat</span></span> has two constructors, <span class="inlinecode"><span class="id" title="var">O</span></span> and <span class="inlinecode"><span class="id" title="var">S</span></span>, which are just like the OCaml
+constructors we examined above.  And <span class="inlinecode"><span class="id" title="var">nat</span></span> has type <span class="inlinecode"><span class="id" title="keyword">Set</span></span>, meaning that <span class="inlinecode"><span class="id" title="var">nat</span></span> is
+a specification for program computations.  (Or, a little more loosely, that
+<span class="inlinecode"><span class="id" title="var">nat</span></span> is a type representing program values.)
+
+<div class="paragraph"> </div>
+
+Anywhere we write something that looks like an integer literal in Coq, Coq
+actually understand that as its expansion in the Peano representation defined
+above.  For example, <span class="inlinecode">2</span> is understood by Coq as just syntactic sugar for <span class="inlinecode"><span class="id" title="var">S</span></span> <span class="inlinecode">(<span class="id" title="var">S</span></span>
+<span class="inlinecode"><span class="id" title="var">O</span>)</span>.  We can even write computations using those constructors:
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Compute</span> <span class="id" title="var">S</span> (<span class="id" title="var">S</span> <span class="id" title="var">O</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Coq responds, though, by reintroducing the syntactic sugar:
+<pre>
+= 2 : nat
+</pre>
+
+<div class="paragraph"> </div>
+
+The Coq standard library defines many functions over <span class="inlinecode"><span class="id" title="var">nat</span></span> using those
+constructors and pattern matching, including addition, subtraction,
+and multiplication.  For example, addition is defined like this:
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">my_add</span> (<span class="id" title="var">a</span> <span class="id" title="var">b</span> : <span class="id" title="var">nat</span>) : <span class="id" title="var">nat</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">a</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| 0 =&gt; <span class="id" title="var">b</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">S</span> <span class="id" title="var">c</span> =&gt; <span class="id" title="var">S</span> (<span class="id" title="var">my_add</span> <span class="id" title="var">c</span> <span class="id" title="var">b</span>)<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Note that we're allowed to use either <span class="inlinecode">0</span> or <span class="inlinecode"><span class="id" title="var">O</span></span> as a pattern, because
+the former is just syntactic sugar for the latter.  The second branch
+of the pattern match is effectively calling <span class="inlinecode"><span class="id" title="var">my_add</span></span> recursively with
+<span class="inlinecode"><span class="id" title="var">a</span>-1</span> as its first argument, since <span class="inlinecode"><span class="id" title="var">a</span></span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">S</span></span> <span class="inlinecode"><span class="id" title="var">c</span></span>, meaning that <span class="inlinecode"><span class="id" title="var">a</span></span> is the
+successor of <span class="inlinecode"><span class="id" title="var">c</span></span>.
+
+<div class="paragraph"> </div>
+
+Now that we know how <span class="inlinecode"><span class="id" title="var">nat</span></span> is defined inductively, let's try
+to prove the classic theorem mentioned above about summation.
+Moreover, let's prove that a program that computes the sum <span class="inlinecode">0</span> <span class="inlinecode">+</span> <span class="inlinecode">1</span> <span class="inlinecode">+</span> <span class="inlinecode">...</span> <span class="inlinecode">+</span> <span class="inlinecode"><span class="id" title="var">n</span></span>
+does in fact compute <span class="inlinecode"><span class="id" title="var">n</span></span> <span class="inlinecode">*</span> <span class="inlinecode">(<span class="id" title="var">n</span>+1)</span> <span class="inlinecode">/</span> <span class="inlinecode">2</span>.  First, we need to write
+that program.  In OCaml, we could write the program quite easily:
+<pre>
+let rec sum_to n =
+  if n=0 then 0
+  else n + sum_to (n-1)
+</pre>
+
+<div class="paragraph"> </div>
+
+In Coq, it will turn out to be surprisingly tricky...
+
+<div class="paragraph"> </div>
+
+
+<div class="paragraph"> </div>
+
+<a name="lab5"></a><h2 class="section">Recursive functions, revisited</h2>
+
+
+<div class="paragraph"> </div>
+
+Here's a first attempt at defining <span class="inlinecode"><span class="id" title="var">sum_to</span></span>, which is just a direct translation
+of the OCaml code into Coq.  The <span class="inlinecode"><span class="id" title="var">Fail</span></span> keyword before it tells Coq to expect
+the definition to fail to compile. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="var">Fail</span> <span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">sum_to</span> (<span class="id" title="var">n</span>:<span class="id" title="var">nat</span>) : <span class="id" title="var">nat</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">if</span> <span class="id" title="var">n</span> = 0 <span class="id" title="keyword">then</span> 0 <span class="id" title="keyword">else</span> <span class="id" title="var">n</span> + <span class="id" title="var">sum_to</span> (<span class="id" title="var">n</span>-1).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Coq responds:
+<pre>
+The command has indeed failed with message:
+The term "n = 0" has type "Prop"
+which is not a (co-)inductive type.
+</pre>
+The problem is the the equality operator <span class="inlinecode">=</span> returns a proposition (i.e.,
+something we could try to prove), whereas the <span class="inlinecode"><span class="id" title="keyword">if</span></span> expression expects a Boolean
+(i.e., <span class="inlinecode"><span class="id" title="var">true</span></span> or <span class="inlinecode"><span class="id" title="var">false</span></span>) as its guard. (Actually <span class="inlinecode"><span class="id" title="keyword">if</span></span> is willing to accept any
+value of an inductive type with exactly two constructors as its guard, and
+<span class="inlinecode"><span class="id" title="var">bool</span></span> is an example of such a type.)
+
+<div class="paragraph"> </div>
+
+To fix this problem, we need to use an equality operator that returns a <span class="inlinecode"><span class="id" title="var">bool</span></span>,
+rather than a <span class="inlinecode"><span class="id" title="keyword">Prop</span></span>, when applied to two <span class="inlinecode"><span class="id" title="var">nat</span></span>s.  Such an operator is defined
+in the <span class="inlinecode"><span class="id" title="var">Arith</span></span> library for us: 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Arith</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Locate</span> "=?".<br/>
+<span class="id" title="keyword">Check</span> <span class="id" title="var">Nat.eqb</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Coq responds:
+<pre>
+Nat.eqb : nat -&gt; nat -&gt; bool
+</pre>
+
+<div class="paragraph"> </div>
+
+We can now try to use that operator.  Unfortunately, we discover a new problem:
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="var">Fail</span> <span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">sum_to</span> (<span class="id" title="var">n</span>:<span class="id" title="var">nat</span>) : <span class="id" title="var">nat</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">if</span> <span class="id" title="var">n</span> =? 0 <span class="id" title="keyword">then</span> 0 <span class="id" title="keyword">else</span> <span class="id" title="var">n</span> + <span class="id" title="var">sum_to</span> (<span class="id" title="var">n</span>-1).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Coq responds with output that contains the following lines:
+<pre>
+Recursive definition of sum_to is ill-formed.
+...
+Recursive call to sum_to has principal argument equal to
+"n - 1" instead of a subterm of "n".
+...
+</pre>
+Although the error message might be cryptic, you can see that Coq is complaining
+about the recursive call in the <span class="inlinecode"><span class="id" title="keyword">else</span></span> branch.  For some reason, Coq is unhappy
+about the argument <span class="inlinecode"><span class="id" title="var">n</span>-1</span> provided at that call.  Coq wants that argument to be a
+"subterm" of <span class="inlinecode"><span class="id" title="var">n</span></span>.  The words <i>term</i> and <i>expression</i> are synonymous here, so Coq
+is saying that it wants the argument to be a subexpression of <span class="inlinecode"><span class="id" title="var">n</span></span>.  Of course
+<span class="inlinecode"><span class="id" title="var">n</span></span> doesn't have any subexpressions. So why is Coq giving us this error?
+
+<div class="paragraph"> </div>
+
+Before we can answer that question, let's look at a different recursive
+function---one that implements an infinite loop: 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="var">Fail</span> <span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">inf</span> (<span class="id" title="var">x</span>:<span class="id" title="var">nat</span>) : <span class="id" title="var">nat</span> := <span class="id" title="var">inf</span> <span class="id" title="var">x</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Coq responds very similarly to how it did with <span class="inlinecode"><span class="id" title="var">sum_to</span></span>:
+<pre>
+Recursive definition of inf is ill-formed.
+...
+Recursive call to inf has principal argument equal to
+"x" instead of a subterm of "x".
+</pre>
+
+<div class="paragraph"> </div>
+
+The reason Coq rejects <span class="inlinecode"><span class="id" title="var">inf</span></span> is that <b>Coq does not permit any infinite
+loops</b>. That might seem strange, but there's an excellent reason for it.
+Consider how <span class="inlinecode"><span class="id" title="var">inf</span></span> would be defined in OCaml:
+<pre>
+# let rec inf x = inf x
+val inf : 'a -&gt; 'b = &lt;fun&gt;
+</pre>
+Let's look at the type of that function, using what we learned about
+propositions-as-types in the previous lecture.  The type <span class="inlinecode">'<span class="id" title="var">a</span></span> <span class="inlinecode">-&gt;</span> <span class="inlinecode">'<span class="id" title="var">b</span></span>
+corresponds to the proposition <span class="inlinecode"><span class="id" title="var">A</span></span> <span class="inlinecode">-&gt;</span> <span class="inlinecode"><span class="id" title="var">B</span></span>, where <span class="inlinecode"><span class="id" title="var">A</span></span> and <span class="inlinecode"><span class="id" title="var">B</span></span> could
+be any propositions.  In particular, <span class="inlinecode"><span class="id" title="var">A</span></span> could be <span class="inlinecode"><span class="id" title="var">True</span></span> and <span class="inlinecode"><span class="id" title="var">B</span></span>
+could be <span class="inlinecode"><span class="id" title="var">False</span></span>, leading to the proposition <span class="inlinecode"><span class="id" title="var">True</span></span> <span class="inlinecode">-&gt;</span> <span class="inlinecode"><span class="id" title="var">False</span></span>.  That's
+a proposition that should never be provable:  truth does not imply
+falsehood.  And yet, since <span class="inlinecode"><span class="id" title="var">inf</span></span> is a program of that type, <span class="inlinecode"><span class="id" title="var">inf</span></span>
+corresponds to a proof of that proposition.  So using <span class="inlinecode"><span class="id" title="var">inf</span></span> we could
+actually prove <span class="inlinecode"><span class="id" title="var">False</span></span>:
+<pre>
+type void = {nope : 'a . 'a};;
+let rec inf x = inf x;;
+let ff : void = inf ();;
+</pre>
+The <span class="inlinecode"><span class="id" title="var">void</span></span> type is how we represented <span class="inlinecode"><span class="id" title="var">False</span></span> in the previous lecturev.
+The value <span class="inlinecode"><span class="id" title="var">ff</span></span> above corresponds to a proof of <span class="inlinecode"><span class="id" title="var">False</span></span>.
+So infinite loops are able to prove <span class="inlinecode"><span class="id" title="var">False</span></span>.
+
+<div class="paragraph"> </div>
+
+In OCaml we don't mind that phenomenon, because OCaml's purpose is not to be a
+proof assistant.  But in Coq it would be deadly:  we should never allow the
+proof assistant to prove false propositions.  Coq therefore wants to prohibit
+all infinite loops.  But that's easier said than done!  Recall from CS 2800 that
+the <i>halting problem</i> is undecidable:  we can't write a program that precisely
+determines whether another program will terminate.  Well, the Coq compiler is a
+program, and it wants to detect which programs terminate and which programs do
+not---which is exactly what the halting problem says is impossible.
+
+<div class="paragraph"> </div>
+
+So instead of trying to do something impossible, Coq settles for doing something
+possible but imprecise, specifically, something that prohibits all
+non-terminating programs as well as prohibiting some terminating programs. Coq
+enforces a syntactic restriction on recursive functions: there must always be an
+argument that is <i>syntactically smaller</i> at every recursive function
+application.  An expression <span class="inlinecode"><span class="id" title="var">e1</span></span> is syntactically smaller than <span class="inlinecode"><span class="id" title="var">e2</span></span> if <span class="inlinecode"><span class="id" title="var">e1</span></span> is a
+subexpression of <span class="inlinecode"><span class="id" title="var">e2</span></span>.  For example, <span class="inlinecode">1</span> is syntactically smaller than <span class="inlinecode">1-<span class="id" title="var">x</span></span>,
+but <span class="inlinecode"><span class="id" title="var">n</span>-1</span> is not syntactically smaller than <span class="inlinecode"><span class="id" title="var">n</span></span>.  It turns out this restriction
+is sufficient to guarantee that programs must terminate:  eventually, if every
+call results in something smaller, you must reach something that is small enough
+that you cannot make a recursive call on it, hence evaluation must terminate.  A
+synonym for "syntactically smaller" is <i>structurally decreasing</i>.
+
+<div class="paragraph"> </div>
+
+But that does rule out some programs that we as humans know will terminate yet
+do not meet the syntactic restriction.  And <span class="inlinecode"><span class="id" title="var">sum_to</span></span> is one of them. Here is the
+definition we previously tried: 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="var">Fail</span> <span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">sum_to</span> (<span class="id" title="var">n</span>:<span class="id" title="var">nat</span>) : <span class="id" title="var">nat</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">if</span> <span class="id" title="var">n</span> =? 0 <span class="id" title="keyword">then</span> 0 <span class="id" title="keyword">else</span> <span class="id" title="var">n</span> + <span class="id" title="var">sum_to</span> (<span class="id" title="var">n</span>-1).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+The recursive call to <span class="inlinecode"><span class="id" title="var">sum_to</span></span> has as its argument <span class="inlinecode"><span class="id" title="var">n</span>-1</span>, which
+syntactically is actually bigger than the original argument of <span class="inlinecode"><span class="id" title="var">n</span></span>.  So Coq
+rejects the program.
+
+<div class="paragraph"> </div>
+
+To finally succeed in definining <span class="inlinecode"><span class="id" title="var">sum_to</span></span>, we can make use of what we know about
+how <span class="inlinecode"><span class="id" title="var">nat</span></span> is defined:  since it's an inductive type, we can pattern match on it:
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">sum_to</span> (<span class="id" title="var">n</span>:<span class="id" title="var">nat</span>) : <span class="id" title="var">nat</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">n</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| 0 =&gt; 0<br/>
+&nbsp;&nbsp;| <span class="id" title="var">S</span> <span class="id" title="var">k</span> =&gt; <span class="id" title="var">n</span> + <span class="id" title="var">sum_to</span> <span class="id" title="var">k</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+The second branch of the pattern match recurses on an argument that is both
+syntactically and arithmetically smaller, just as our definition of <span class="inlinecode"><span class="id" title="var">my_add</span></span>
+did, above.  So Coq's syntactic restriction on recursion is satisfied, and the
+definition is accepted as a program that definitely terminates.
+
+<div class="paragraph"> </div>
+
+
+<div class="paragraph"> </div>
+
+<a name="lab6"></a><h2 class="section">Inductive proof of the summation formula</h2>
+
+
+<div class="paragraph"> </div>
+
+Now that we've finally succeeded in defining <span class="inlinecode"><span class="id" title="var">sum_to</span></span>, we can prove
+the classic theorem about summation.
+
+<div class="paragraph"> </div>
+
+Here's how we would write the proof mathematically:
+
+<div class="paragraph"> </div>
+
+<pre>
+Theorem:  for all natural numbers n, sum_to n = n * (n+1) / 2.
+
+Proof:  by induction on n.
+P(n) = sum_to n = n * (n+1) / 2
+
+Case:  n=0
+Show:
+  P(0)
+= sum_to 0 = 0 * (0+1) / 2
+= 0 = 0 * (0+1) / 2         // simplifying sum_to 0
+= 0 = 0                     // 0 * x = 0
+
+Case:  n=k+1
+IH:  P(k) = sum_to k = k * (k+1) / 2
+Show:
+  P(k+1)
+= sum_to (k+1) = (k+1) * (k+1+1) / 2
+= k + 1 + sum_to k = (k+1) * (k+1+1) / 2          // simplifying sum_to (k+1)
+= k + 1 + k * (k+1) / 2 = (k+1) * (k+1+1) / 2     // using IH
+= 2 + 3k + k*k = 2 + 3k + k*k                     // simplifying terms on each side
+
+QED
+</pre>
+
+<div class="paragraph"> </div>
+
+Now let's do the proof in Coq. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">sum_sq</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">n</span> : <span class="id" title="var">nat</span>,<br/>
+&nbsp;&nbsp;<span class="id" title="var">sum_to</span> <span class="id" title="var">n</span> = <span class="id" title="var">n</span> * (<span class="id" title="var">n</span>+1) / 2.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">n</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">induction</span> <span class="id" title="var">n</span> <span class="id" title="keyword">as</span> [ | <span class="id" title="var">k</span> <span class="id" title="var">IH</span>].<br/>
+&nbsp;&nbsp;- <span class="id" title="tactic">trivial</span>.<br/>
+&nbsp;&nbsp;- <span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">rewrite</span> -&gt; <span class="id" title="var">IH</span>.<br/>
+<span class="id" title="keyword">Abort</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+The proof is working fine so far, but now we have a complicated algebraic
+equation we need to prove:
+<pre>
+S (k + k * (k + 1) / 2) = fst (Nat.divmod (k + 1 + k * S (k + 1)) 1 0 0)
+</pre>
+(<span class="inlinecode"><span class="id" title="var">divmod</span></span> is part of how <span class="inlinecode">/</span> is implemented in Coq.)
+
+<div class="paragraph"> </div>
+
+Although we could try to prove that manually using the definitions of all the
+operators, it would be much nicer to get Coq to find the proof for us.  It turns
+out that Coq does have great support for finding proofs that involve <i>rings</i>:
+algebraic structures that support addition and multiplication operations.
+(We'll discuss rings in detail after we finish the current proof.)  But we can't
+use that automation here, because the equation we want to prove also involves
+division, and rings do not support division operations.
+
+<div class="paragraph"> </div>
+
+To avoid having to reason about division, we could rewrite the theorem we want
+to prove:  by multiplying both sides by 2, the division goes away: 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">sum_sq_no_div</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">n</span> : <span class="id" title="var">nat</span>,<br/>
+&nbsp;&nbsp;2 * <span class="id" title="var">sum_to</span> <span class="id" title="var">n</span> = <span class="id" title="var">n</span> * (<span class="id" title="var">n</span>+1).<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">n</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">induction</span> <span class="id" title="var">n</span> <span class="id" title="keyword">as</span> [ | <span class="id" title="var">k</span> <span class="id" title="var">IH</span>].<br/>
+&nbsp;&nbsp;- <span class="id" title="tactic">trivial</span>.<br/>
+&nbsp;&nbsp;- <span class="id" title="tactic">simpl</span>.<br/>
+<span class="id" title="keyword">Abort</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Now, after the call to <span class="inlinecode"><span class="id" title="tactic">simpl</span></span>, we don't have any division, but we also
+don't have any expressions that look exactly like the left-hand side of the
+inductive hypothesis.  The problem is that <span class="inlinecode"><span class="id" title="tactic">simpl</span></span> was too agressive in
+simplifying all the expressions. All we really want is to transform the
+left-hand side of the subgoal, <span class="inlinecode">2</span> <span class="inlinecode">*</span> <span class="inlinecode"><span class="id" title="var">sum_to</span></span> <span class="inlinecode">(<span class="id" title="var">S</span></span> <span class="inlinecode"><span class="id" title="var">k</span>)</span>, into an expression that
+contains the left-hand side of the inductive hypothesis, <span class="inlinecode">2</span> <span class="inlinecode">*</span> <span class="inlinecode"><span class="id" title="var">sum_to</span></span> <span class="inlinecode"><span class="id" title="var">k</span></span>.
+Thinking about the definition of <span class="inlinecode"><span class="id" title="var">sum_to</span></span>, we ought to be able to transform <span class="inlinecode">2</span> <span class="inlinecode">*</span>
+<span class="inlinecode"><span class="id" title="var">sum_to</span></span> <span class="inlinecode">(<span class="id" title="var">S</span></span> <span class="inlinecode"><span class="id" title="var">k</span>)</span> into <span class="inlinecode">2</span> <span class="inlinecode">*</span> <span class="inlinecode">(<span class="id" title="var">S</span></span> <span class="inlinecode"><span class="id" title="var">k</span></span> <span class="inlinecode">+</span> <span class="inlinecode"><span class="id" title="var">sum_to</span></span> <span class="inlinecode"><span class="id" title="var">k</span>)</span>, which equals <span class="inlinecode">2</span> <span class="inlinecode">*</span> <span class="inlinecode">(<span class="id" title="var">S</span></span> <span class="inlinecode"><span class="id" title="var">k</span>)</span> <span class="inlinecode">+</span> <span class="inlinecode">2</span> <span class="inlinecode">*</span> <span class="inlinecode"><span class="id" title="var">sum_to</span></span>
+<span class="inlinecode"><span class="id" title="var">k</span></span>.  That final expression does have the left-hand side of the inductive
+hypothesis in it, as desired.  Let's factor out that reasoning as a separate
+"helper" theorem.  In math, helper theorems are usually called <i>lemmas</i>.  The
+Coq keyword <span class="inlinecode"><span class="id" title="keyword">Lemma</span></span> is synonymous with <span class="inlinecode"><span class="id" title="keyword">Theorem</span></span>. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">sum_helper</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">n</span> : <span class="id" title="var">nat</span>,<br/>
+&nbsp;&nbsp;2 * <span class="id" title="var">sum_to</span> (<span class="id" title="var">S</span> <span class="id" title="var">n</span>) = 2 * (<span class="id" title="var">S</span> <span class="id" title="var">n</span>) + 2 * <span class="id" title="var">sum_to</span> <span class="id" title="var">n</span>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">n</span>. <span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">ring</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+The proof above simplifies the application of <span class="inlinecode"><span class="id" title="var">sum_to</span></span> <span class="inlinecode">(<span class="id" title="var">S</span></span> <span class="inlinecode"><span class="id" title="var">n</span>)</span>, then invokes a
+new tactic called <span class="inlinecode"><span class="id" title="tactic">ring</span></span>.  That tactic is able to automatically search for
+proofs of equations involving addition and multiplication of natural numbers.
+
+<div class="paragraph"> </div>
+
+Now that we have our helper lemma, we can use it to prove the theorem: 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">sum_sq_no_div</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">n</span> : <span class="id" title="var">nat</span>,<br/>
+&nbsp;&nbsp;2 * <span class="id" title="var">sum_to</span> <span class="id" title="var">n</span> = <span class="id" title="var">n</span> * (<span class="id" title="var">n</span>+1).<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">n</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">induction</span> <span class="id" title="var">n</span> <span class="id" title="keyword">as</span> [ | <span class="id" title="var">k</span> <span class="id" title="var">IH</span>].<br/>
+&nbsp;&nbsp;- <span class="id" title="tactic">trivial</span>.<br/>
+&nbsp;&nbsp;- <span class="id" title="tactic">rewrite</span> -&gt; <span class="id" title="var">sum_helper</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">rewrite</span> -&gt; <span class="id" title="var">IH</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">ring</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Once more, after doing the rewriting with the lemma and the inductive
+hypothesis, we're left with algebraic equations that can be proved simply by
+invoking the <span class="inlinecode"><span class="id" title="tactic">ring</span></span> tactic.
+
+<div class="paragraph"> </div>
+
+Finally, we can use <span class="inlinecode"><span class="id" title="var">sum_sq_no_div</span></span> to prove the original theorem involving
+division.  To do that, we need to first prove another lemma that shows we can
+transform a multiplication into a division: 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">div_helper</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span> <span class="id" title="var">c</span> : <span class="id" title="var">nat</span>,<br/>
+&nbsp;&nbsp;<span class="id" title="var">c</span> &lt;&gt; 0 -&gt; <span class="id" title="var">c</span> * <span class="id" title="var">a</span> = <span class="id" title="var">b</span> -&gt; <span class="id" title="var">a</span> = <span class="id" title="var">b</span> / <span class="id" title="var">c</span>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span> <span class="id" title="var">c</span> <span class="id" title="var">neq</span> <span class="id" title="var">eq</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">rewrite</span> &lt;- <span class="id" title="var">eq</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">rewrite</span> <span class="id" title="var">Nat.mul_comm</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">rewrite</span> <span class="id" title="var">Nat.div_mul</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">trivial</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">assumption</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+That lemma involves two library theorems, <span class="inlinecode"><span class="id" title="var">mult_comm</span></span> and <span class="inlinecode"><span class="id" title="var">Nat.div_mul</span></span>. How
+did we know to use these?  Coq can help us search for useful theorems. Right
+after we <span class="inlinecode"><span class="id" title="tactic">rewrite</span></span> <span class="inlinecode">&lt;-</span> <span class="inlinecode"><span class="id" title="var">eq</span></span> in the above proof, our subgoal is <span class="inlinecode"><span class="id" title="var">a</span></span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">c</span></span> <span class="inlinecode">*</span> <span class="inlinecode"><span class="id" title="var">a</span></span> <span class="inlinecode">/</span> <span class="inlinecode"><span class="id" title="var">c</span></span>. It
+looks like we ought to be able to cancel the <span class="inlinecode"><span class="id" title="var">c</span></span> term on the right-hand side.
+So we can search for a theorem that would help us do that.  The <span class="inlinecode"><span class="id" title="keyword">Search</span></span> command
+takes wildcards and reports all theorems that match the pattern we supply, for
+example:
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Search</span> (<span class="id" title="var">_</span> * <span class="id" title="var">_</span> / <span class="id" title="var">_</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Unfortunately, the search results currently seem to be broken in Visual
+Studio Code:  we get only one matching library theorem, instead of all of them.
+Doing the search in <span class="inlinecode"><span class="id" title="var">coqide</span></span> or <span class="inlinecode"><span class="id" title="var">coqtop</span></span> (the Coq REPL), or just browsing
+through the web documentation, does reveal a useful theorem:
+<pre>
+Nat.div_mul: forall a b : nat, b &lt;&gt; 0 -&gt; a * b / b = a
+</pre>
+That would let us cancel a term from the numerator and denominator, but it
+requires the left-hand side of the equality to be of the form <span class="inlinecode"><span class="id" title="var">a</span></span> <span class="inlinecode">*</span> <span class="inlinecode"><span class="id" title="var">b</span></span> <span class="inlinecode">/</span> <span class="inlinecode"><span class="id" title="var">b</span></span>,
+whereas we have <span class="inlinecode"><span class="id" title="var">c</span></span> <span class="inlinecode">*</span> <span class="inlinecode"><span class="id" title="var">a</span></span> <span class="inlinecode">/</span> <span class="inlinecode"><span class="id" title="var">b</span></span>.  The problem is that the two sides of the
+multiplication are reversed.  No worries; multiplication is commutative, and
+there is a library theorem that proves it. Again, we could find that theorem: 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Search</span> (<span class="id" title="var">_</span> * <span class="id" title="var">_</span> = <span class="id" title="var">_</span> * <span class="id" title="var">_</span>).<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+One of the results is:
+<pre>
+Nat.mul_comm: forall n m : nat, n * m = m * n
+</pre>
+
+<div class="paragraph"> </div>
+
+Putting those two library theorems to use, we're able to prove the lemma as
+above.
+
+<div class="paragraph"> </div>
+
+Finally, we can use that lemma to prove our classic theorem about summation. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">sum_sq</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">n</span> : <span class="id" title="var">nat</span>,<br/>
+&nbsp;&nbsp;<span class="id" title="var">sum_to</span> <span class="id" title="var">n</span> = <span class="id" title="var">n</span> * (<span class="id" title="var">n</span>+1) / 2.<br/>
+
+<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">n</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">apply</span> <span class="id" title="var">div_helper</span>.<br/>
+&nbsp;&nbsp;- <span class="id" title="tactic">discriminate</span>.<br/>
+&nbsp;&nbsp;- <span class="id" title="tactic">rewrite</span> <span class="id" title="var">sum_sq_no_div</span>. <span class="id" title="tactic">trivial</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+When we use <span class="inlinecode"><span class="id" title="tactic">apply</span></span> <span class="inlinecode"><span class="id" title="var">div_helper</span></span> in that proof, Coq generates two new
+subgoals---one for each of the propositions <span class="inlinecode"><span class="id" title="var">c</span></span> <span class="inlinecode">&lt;&gt;</span> <span class="inlinecode">0</span> and <span class="inlinecode"><span class="id" title="var">c</span></span> <span class="inlinecode">*</span> <span class="inlinecode"><span class="id" title="var">a</span></span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">b</span></span> in the type
+of <span class="inlinecode"><span class="id" title="var">div_helper</span></span>.
+
+<div class="paragraph"> </div>
+
+<i>Summary</i>:  wow, that was a lot of work to prove that seemingly simple classic
+theorem!  We had to figure out how to code <span class="inlinecode"><span class="id" title="var">sum_to</span></span>, and we had to deal with a
+lot of complications involving algebra.  This situation is not uncommon:  the
+theorems that we think of as easy with pencil-and-paper (like arithmetic) turn
+out to be hard to convince Coq of, whereas the theorems that we think of as
+challenging with pencil-and-paper (like induction) turn out to be easy.
+
+<div class="paragraph"> </div>
+
+
+<div class="paragraph"> </div>
+
+<a name="lab7"></a><h2 class="section">Rings and fields</h2>
+
+
+<div class="paragraph"> </div>
+
+In the proof we just did above about summation, we used a tactic called <span class="inlinecode"><span class="id" title="tactic">ring</span></span>
+that we said searches for proofs about algebraic equations involving
+multiplication and addition.  Let's look more closely at that tactic.
+
+<div class="paragraph"> </div>
+
+When we studied OCaml modules, we looked at <i>rings</i> as an example of a
+mathematical abstraction of addition, multiplication, and negation.  Here is an
+OCaml signature for a ring:
+
+<div class="paragraph"> </div>
+
+<pre>
+module type Ring = sig
+  type t
+  val zero : t
+  val one  : t
+  val add  : t -&gt; t -&gt; t
+  val mult : t -&gt; t -&gt; t
+  val neg  : t -&gt; t
+end
+</pre>
+
+<div class="paragraph"> </div>
+
+We could implement that signature with a representation type <span class="inlinecode"><span class="id" title="var">t</span></span> that is <span class="inlinecode"><span class="id" title="var">int</span></span>,
+or <span class="inlinecode"><span class="id" title="var">float</span></span>, or even <span class="inlinecode"><span class="id" title="var">bool</span></span>.
+
+<div class="paragraph"> </div>
+
+The names given in <span class="inlinecode"><span class="id" title="var">Ring</span></span> are suggestive of the operations they represent, but
+to really specify how those operations should behave, we need to write some
+equations that relate them.  Below are the equations that (it turns out) fully
+specify <span class="inlinecode"><span class="id" title="var">zero</span></span>, <span class="inlinecode"><span class="id" title="var">one</span></span>, <span class="inlinecode"><span class="id" title="var">add</span></span>, and <span class="inlinecode"><span class="id" title="var">mult</span></span>.  Rather than use those identifiers, we
+use the more familiar notation of <span class="inlinecode">0</span>, <span class="inlinecode">1</span>, <span class="inlinecode">+</span>, and <span class="inlinecode">*</span>.
+
+<div class="paragraph"> </div>
+
+<pre>
+0 + x = 0
+x + y = y + x
+x + (y + z) = (x + y) + z
+
+0 * x = 0
+1 * x = 1
+x * y = y * x
+x * (y * z) = (x * y) * z
+
+(x + y) * z = (x * z) + (y * z)
+</pre>
+
+<div class="paragraph"> </div>
+
+Technically these equations specify what is known as a <i>commutative semi-ring</i>.
+It's a <i>semi</i>-ring because we don't have equations specifying negation yet.
+It's a <i>commutative</i> semi-ring because the <span class="inlinecode">*</span> operation commutes. (The <span class="inlinecode">+</span>
+operation commutes too, but that's always required of a semi-ring.)
+
+<div class="paragraph"> </div>
+
+The first group of equations specifies how <span class="inlinecode">+</span> behaves on its own. The second
+group specifies how <span class="inlinecode">*</span> behaves on its own. The final equation specifies how <span class="inlinecode">+</span>
+and <span class="inlinecode">*</span> interact.
+
+<div class="paragraph"> </div>
+
+If we extend the equations above with the following two, we get a specification
+for a <i>ring</i>:
+
+<div class="paragraph"> </div>
+
+<pre>
+x - y = x + (-y)
+x + (-x) = 0
+</pre>
+
+<div class="paragraph"> </div>
+
+It's a remarkable fact from the study of <i>abstract algebra</i> that those equations
+completely specify a ring.  Any theorem you want to prove about addition,
+multiplication, and negation follows from those equations.  We call the
+equations the <i>axioms</i> that specify a ring.
+
+<div class="paragraph"> </div>
+
+Rings don't have a division operation.  Let's introduce a new operator called
+<span class="inlinecode"><span class="id" title="var">inv</span></span> (short for "inverse"), and let's write <span class="inlinecode">1/<span class="id" title="var">x</span></span> as syntactic sugar for <span class="inlinecode"><span class="id" title="var">inv</span></span>
+<span class="inlinecode"><span class="id" title="var">x</span></span>.  If we take all the the ring axioms and add the following axiom for <span class="inlinecode"><span class="id" title="var">inv</span></span>,
+we get what is called a <i>field</i>:
+
+<div class="paragraph"> </div>
+
+<pre>
+x * 1/x = 1     if x&lt;&gt;0
+</pre>
+
+<div class="paragraph"> </div>
+
+A field is an abstraction of addition, multiplication, negation, and division.
+Note that OCaml <span class="inlinecode"><span class="id" title="var">int</span></span>s do not satisfy the <span class="inlinecode"><span class="id" title="var">inv</span></span> axiom above.  For example, <span class="inlinecode">2</span> <span class="inlinecode">*</span>
+<span class="inlinecode">(1/2)</span> equals <span class="inlinecode">0</span> in OCaml, not <span class="inlinecode">1</span>.  OCaml <span class="inlinecode"><span class="id" title="var">float</span></span>s mostly do satisfy the field
+axioms, up to the limits of floating-point arithmetic.  And in mathematics, the
+rational numbers and the real numbers are fields.
+
+<div class="paragraph"> </div>
+
+Coq provides two tactics, <span class="inlinecode"><span class="id" title="tactic">ring</span></span> and <span class="inlinecode"><span class="id" title="tactic">field</span></span>, that automatically search for
+proofs using the ring and field axioms. The <span class="inlinecode"><span class="id" title="tactic">ring</span></span> tactic was already loaded for
+us when we wrote <span class="inlinecode"><span class="id" title="keyword">Require</span></span> <span class="inlinecode"><span class="id" title="keyword">Import</span></span> <span class="inlinecode"><span class="id" title="var">Arith</span></span> earlier in this file. We can use the
+<span class="inlinecode"><span class="id" title="tactic">ring</span></span> tactic to easily prove equalities that follow from the ring axioms.  Here
+are two examples. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">plus_comm</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span>,<br/>
+&nbsp;&nbsp;<span class="id" title="var">a</span> + <span class="id" title="var">b</span> = <span class="id" title="var">b</span> + <span class="id" title="var">a</span>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span>. <span class="id" title="tactic">ring</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">foil</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span> <span class="id" title="var">c</span> <span class="id" title="var">d</span>,<br/>
+&nbsp;&nbsp;(<span class="id" title="var">a</span> + <span class="id" title="var">b</span>) * (<span class="id" title="var">c</span> + <span class="id" title="var">d</span>) = <span class="id" title="var">a</span>*<span class="id" title="var">c</span> + <span class="id" title="var">b</span>*<span class="id" title="var">c</span> + <span class="id" title="var">a</span>*<span class="id" title="var">d</span> + <span class="id" title="var">b</span>*<span class="id" title="var">d</span>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span> <span class="id" title="var">c</span> <span class="id" title="var">d</span>. <span class="id" title="tactic">ring</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Coq infers the types of the variables above to be <span class="inlinecode"><span class="id" title="var">nat</span></span>, because the <span class="inlinecode">+</span> and
+<span class="inlinecode">*</span> operators are defined on <span class="inlinecode"><span class="id" title="var">nat</span></span>.
+
+<div class="paragraph"> </div>
+
+The proofs that the <span class="inlinecode"><span class="id" title="tactic">ring</span></span> tactic finds can be quite complicated.  For example,
+try looking at the output of the following command.  It's so long that we won't
+put that output in this file! 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Print</span> <span class="id" title="var">foil</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Of course, <span class="inlinecode"><span class="id" title="tactic">ring</span></span> won't find proofs of equations that don't actually hold.
+For example, if we had a typo in our statement of <span class="inlinecode"><span class="id" title="var">foil</span></span>, then <span class="inlinecode"><span class="id" title="tactic">ring</span></span> would
+fail. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">broken_foil</span>:  <span class="id" title="keyword">forall</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span> <span class="id" title="var">c</span> <span class="id" title="var">d</span>,<br/>
+&nbsp;&nbsp;(<span class="id" title="var">a</span> + <span class="id" title="var">b</span>) * (<span class="id" title="var">c</span> + <span class="id" title="var">d</span>) = <span class="id" title="var">a</span>*<span class="id" title="var">c</span> + <span class="id" title="var">b</span>*<span class="id" title="var">c</span> + <span class="id" title="var">c</span>*<span class="id" title="var">d</span> + <span class="id" title="var">b</span>*<span class="id" title="var">d</span>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">a</span> <span class="id" title="var">b</span> <span class="id" title="var">c</span> <span class="id" title="var">d</span>. <span class="id" title="tactic">try</span> <span class="id" title="tactic">ring</span>.<br/>
+<span class="id" title="keyword">Abort</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Here's a theorem that <span class="inlinecode"><span class="id" title="tactic">ring</span></span>, perhaps surprisingly, cannot prove. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">sub_add_1</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">a</span> : <span class="id" title="var">nat</span>, <span class="id" title="var">a</span> - 1 + 1 = <span class="id" title="var">a</span>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">a</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">try</span> <span class="id" title="tactic">ring</span>.<br/>
+<span class="id" title="keyword">Abort</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+What's going wrong here is that <span class="inlinecode"><span class="id" title="var">nat</span></span> is really only a semi-ring, not a
+ring. That is, <span class="inlinecode"><span class="id" title="var">nat</span></span> doesn't satisfy the axioms about negation.  Why?  Remember
+that the natural numbers stop at <span class="inlinecode">0</span>; we don't get any negative numbers. So if
+<span class="inlinecode"><span class="id" title="var">a</span></span> is <span class="inlinecode">0</span> in the above theorem, <span class="inlinecode"><span class="id" title="var">a</span>-1</span> actually evaluates to <span class="inlinecode">0</span> rather than
+<span class="inlinecode">-1</span>. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Compute</span> 0-1. 
+<br/>
+</div>
+
+<div class="doc">
+If we want to reason about the integers instead of the natural numbers, we
+can use a library called <span class="inlinecode"><span class="id" title="var">ZArith</span></span> for that.  The name comes from the fact that
+<span class="inlinecode"><span class="id" title="var">Z</span></span> is used in mathematics to denote the integers. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">ZArith</span>.<br/>
+<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">Z_scope</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+The <span class="inlinecode"><span class="id" title="keyword">Open</span></span> <span class="inlinecode"><span class="id" title="keyword">Scope</span></span> command causes the <span class="inlinecode"><span class="id" title="var">ZArith</span></span> library's scope to be used to
+resolve names, hence <span class="inlinecode">+</span> becomes the operator on <span class="inlinecode"><span class="id" title="var">Z</span></span> instead of on <span class="inlinecode"><span class="id" title="var">nat</span></span>, as
+does <span class="inlinecode">-</span>, etc. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Compute</span> 0-1. 
+<br/>
+</div>
+
+<div class="doc">
+Now we can prove the theorem from before. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">sub_add_1</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">a</span> : <span class="id" title="var">Z</span>, <span class="id" title="var">a</span> - 1 + 1 = <span class="id" title="var">a</span>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">a</span>. <span class="id" title="tactic">ring</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Before going on, let's close the <span class="inlinecode"><span class="id" title="var">Z</span></span> scope so that the operators go back to
+working on <span class="inlinecode"><span class="id" title="var">nat</span></span>, as usual. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Close</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">Z_scope</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Compute</span> 0-1. 
+<br/>
+</div>
+
+<div class="doc">
+Coq also provides implementations of the rational numbers as a field, as
+well as the real numbers as a field.  To get the <span class="inlinecode"><span class="id" title="tactic">field</span></span> tactic, we first need
+to load the <span class="inlinecode"><span class="id" title="var">Field</span></span> library. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Field</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+The rational numbers are provided in a couple different Coq libraries; the
+one we'll use here is <span class="inlinecode"><span class="id" title="var">Qcanon</span></span>.  In mathematics, <span class="inlinecode"><span class="id" title="var">Q</span></span> denotes the rational
+numbers, and <span class="inlinecode"><span class="id" title="var">canon</span></span> indicates that the numbers are stored in a <i>canonical
+form</i>---that is, as simplified fractions. For example, <span class="inlinecode"><span class="id" title="var">Qcanon</span></span> would represent
+<span class="inlinecode">2/4</span> as <span class="inlinecode">1/2</span>, eliminating the common factor of <span class="inlinecode">2</span> from the numerator and the
+denominator.  (The <span class="inlinecode"><span class="id" title="var">QArith</span></span> library provides rational numbers that are not in
+canonical form.) 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Qcanon</span>.<br/>
+<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">Qc_scope</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">frac_qc</span>: <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> <span class="id" title="var">z</span> : <span class="id" title="var">Qc</span>, <span class="id" title="var">z</span> &lt;&gt; 0 -&gt; (<span class="id" title="var">x</span> + <span class="id" title="var">y</span>) / <span class="id" title="var">z</span> = <span class="id" title="var">x</span> / <span class="id" title="var">z</span> + <span class="id" title="var">y</span> /<span class="id" title="var">z</span>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> <span class="id" title="var">z</span> <span class="id" title="var">z_not_0</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">field</span>. <span class="id" title="tactic">assumption</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Close</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">Qc_scope</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+The real numbers are provided in the <span class="inlinecode"><span class="id" title="var">Reals</span></span> library.  Here's that same
+theorem again. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Module</span> <span class="id" title="var">RealExample</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+This code is in its own module for an annoying reason: <span class="inlinecode"><span class="id" title="var">Reals</span></span> redefines its
+own <span class="inlinecode"><span class="id" title="var">nil</span></span>, which will interefere with the examples want to give further below in
+this file with lists. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Reals</span>.<br/>
+<span class="id" title="keyword">Open</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">R_scope</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">frac_r</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> <span class="id" title="var">z</span>, <span class="id" title="var">z</span> &lt;&gt; 0 -&gt; (<span class="id" title="var">x</span> + <span class="id" title="var">y</span>) / <span class="id" title="var">z</span> = <span class="id" title="var">x</span> / <span class="id" title="var">z</span> + <span class="id" title="var">y</span> /<span class="id" title="var">z</span>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> <span class="id" title="var">z</span> <span class="id" title="var">z_not_0</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">field</span>. <span class="id" title="tactic">assumption</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+The assumption that <span class="inlinecode"><span class="id" title="var">z</span></span> <span class="inlinecode">&lt;&gt;</span> <span class="inlinecode">0</span> was needed in the above theorems to avoid
+division by zero.  If we omitted that assumption, the <span class="inlinecode"><span class="id" title="tactic">field</span></span> tactic would leave
+us with an unprovable subgoal, as in the proof below. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">frac_r_broken</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> <span class="id" title="var">z</span>, (<span class="id" title="var">x</span> + <span class="id" title="var">y</span>) / <span class="id" title="var">z</span> = <span class="id" title="var">x</span> / <span class="id" title="var">z</span> + <span class="id" title="var">y</span> /<span class="id" title="var">z</span>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">x</span> <span class="id" title="var">y</span> <span class="id" title="var">z</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">field</span>.<br/>
+<span class="id" title="keyword">Abort</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Close</span> <span class="id" title="keyword">Scope</span> <span class="id" title="var">R_scope</span>.<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">RealExample</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+
+<div class="paragraph"> </div>
+
+<a name="lab8"></a><h2 class="section">Induction principles</h2>
+
+
+<div class="paragraph"> </div>
+
+When we studied the Curry-Howard correspondence, we learned that proofs
+correspond to programs.  That correspondence applies to inductive proofs
+as well, and as it turns out, inductive proofs correspond to recursive
+programs.  Intuitively, that's because an inductive proof involves
+an inductive hypothesis---which is an instance of the theorem that
+is being proved, but applied to a smaller value.  Likewise, recursive
+programs involve recursive calls---which are like another instance
+of the function that is already being evaluated, but on a smaller value.
+
+<div class="paragraph"> </div>
+
+To get a more concrete idea of what this means, let's look at the proof
+value (i.e., program) that Coq produces for our original inductive
+proof in these notes:
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Print</span> <span class="id" title="var">app_nil</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Coq responds:
+<pre>
+app_nil =
+fun (A : Type) (lst : list A) =&gt;
+list_ind (fun lst0 : list A =&gt; lst0 ++ nil = lst0) eq_refl
+  (fun (h : A) (t : list A) (IH : t ++ nil = t) =&gt;
+   eq_ind_r (fun l : list A =&gt; h :: l = h :: t) eq_refl IH) lst
+     : forall (A : Type) (lst : list A), lst ++ nil = lst
+</pre>
+
+<div class="paragraph"> </div>
+
+That's dense, but let's start picking it apart.  First, we see that <span class="inlinecode"><span class="id" title="var">app_nil</span></span> is
+a function that takes in two arguments: <span class="inlinecode"><span class="id" title="var">A</span></span> and <span class="inlinecode"><span class="id" title="var">lst</span></span>.  Then it immediately
+applies another function named <span class="inlinecode"><span class="id" title="var">list_ind</span></span>.  That function was defined for us in
+the standard library, and it's what "implements" induction on lists.  Let's
+check it out: 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Check</span> <span class="id" title="var">list_ind</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Coq responds:
+<pre>
+list_ind
+     : forall (A : Type) (P : list A -&gt; Prop),
+       P nil -&gt;
+       (forall (a : A) (l : list A), P l -&gt; P (a :: l)) -&gt;
+       forall l : list A, P l
+</pre>
+
+<div class="paragraph"> </div>
+
+We call <span class="inlinecode"><span class="id" title="var">list_ind</span></span> the <i>induction principle</i> for lists.  It is a proposition
+that says, intuitively, that induction is a valid reasoning principle for lists.
+In more detail, it takes these arguments:
+
+<div class="paragraph"> </div>
+
+<ul class="doclist">
+<li> <span class="inlinecode"><span class="id" title="var">A</span></span>, which is the type of the list elements.
+
+<div class="paragraph"> </div>
+
+
+</li>
+<li> <span class="inlinecode"><span class="id" title="var">P</span></span>, which is the property to be proved by induction.  For example,
+  the property being proved in <span class="inlinecode"><span class="id" title="var">app_nil</span></span> is
+  <span class="inlinecode"><span class="id" title="keyword">fun</span></span> <span class="inlinecode">(<span class="id" title="var">lst</span>:</span> <span class="inlinecode"><span class="id" title="var">list</span></span> <span class="inlinecode"><span class="id" title="var">A</span>)</span> <span class="inlinecode">=&gt;</span> <span class="inlinecode"><span class="id" title="var">lst</span></span> <span class="inlinecode">++</span> <span class="inlinecode"><span class="id" title="var">nil</span></span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">lst</span></span>.
+
+<div class="paragraph"> </div>
+
+
+</li>
+<li> <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode"><span class="id" title="var">nil</span></span>, which is a proof that <span class="inlinecode"><span class="id" title="var">P</span></span> holds of the empty list.  In other words,
+  a proof of the base case.
+
+<div class="paragraph"> </div>
+
+
+</li>
+<li> A final argument of type <span class="inlinecode"><span class="id" title="keyword">forall</span></span> <span class="inlinecode">(<span class="id" title="var">a</span></span> <span class="inlinecode">:</span> <span class="inlinecode"><span class="id" title="var">A</span>)</span> <span class="inlinecode">(<span class="id" title="var">l</span></span> <span class="inlinecode">:</span> <span class="inlinecode"><span class="id" title="var">list</span></span> <span class="inlinecode"><span class="id" title="var">A</span>),</span> <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode"><span class="id" title="var">l</span></span> <span class="inlinecode">-&gt;</span> <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">(<span class="id" title="var">a</span></span> <span class="inlinecode">::</span> <span class="inlinecode"><span class="id" title="var">l</span>)</span>.
+  This is the proof of the inductive case.  It takes an argument <span class="inlinecode"><span class="id" title="var">a</span></span>,
+  which is the head of a list, <span class="inlinecode"><span class="id" title="var">l</span></span>, which is the tail of a list, and
+  a proof <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode"><span class="id" title="var">l</span></span> that <span class="inlinecode"><span class="id" title="var">P</span></span> holds of <span class="inlinecode"><span class="id" title="var">l</span></span>.  So, <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode"><span class="id" title="var">l</span></span> is the inductive
+  hypothesis.  The output is of type <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">(<span class="id" title="var">a</span></span> <span class="inlinecode">::</span> <span class="inlinecode"><span class="id" title="var">l</span>)</span>, which is a proof
+  that <span class="inlinecode"><span class="id" title="var">P</span></span> holds of <span class="inlinecode"><span class="id" title="var">a</span>::<span class="id" title="var">l</span></span>.
+
+</li>
+</ul>
+
+<div class="paragraph"> </div>
+
+Finally, <span class="inlinecode"><span class="id" title="var">list_ind</span></span> returns a value of type <span class="inlinecode"><span class="id" title="keyword">forall</span></span> <span class="inlinecode"><span class="id" title="var">l</span></span> <span class="inlinecode">:</span> <span class="inlinecode"><span class="id" title="var">list</span></span> <span class="inlinecode"><span class="id" title="var">A</span>,</span> <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode"><span class="id" title="var">l</span></span>,
+which is a proof that <span class="inlinecode"><span class="id" title="var">P</span></span> holds of all lists.
+
+<div class="paragraph"> </div>
+
+Ok, so that's the type of <span class="inlinecode"><span class="id" title="var">list_ind</span></span>: a proposition asserting that
+if you have a proof of the base case, and a proof of the inductive
+case, you can assemble those to prove that a property holds of a list.
+Next, what's the <i>value</i> of <span class="inlinecode"><span class="id" title="var">list_ind</span></span>?  In other words, what's the
+proof that <span class="inlinecode"><span class="id" title="var">list_ind</span></span> itself is actually a true proposition?
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Print</span> <span class="id" title="var">list_ind</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Coq responds:
+<pre>
+list_ind =
+fun (A : Type) (P : list A -&gt; Prop) =&gt; list_rect P
+...
+</pre>
+
+<div class="paragraph"> </div>
+
+So <span class="inlinecode"><span class="id" title="var">list_ind</span></span> takes in <span class="inlinecode"><span class="id" title="var">A</span></span> and <span class="inlinecode"><span class="id" title="var">P</span></span> and just immediately applies another
+function, <span class="inlinecode"><span class="id" title="var">list_rect</span></span>, to <span class="inlinecode"><span class="id" title="var">P</span></span>.  (The name <span class="inlinecode"><span class="id" title="var">rect</span></span> is not especially helpful to
+understand, but alludes to <span class="inlinecode"><span class="id" title="keyword">rec</span></span>ursion over a <span class="inlinecode"><span class="id" title="var">t</span></span>ype.) Before we look at
+<span class="inlinecode"><span class="id" title="var">list_rect</span></span>'s actual implementation, let's look at our own equivalent
+implementation that is easier to read: 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">my_list_rect</span><br/>
+&nbsp;&nbsp;(<span class="id" title="var">A</span> : <span class="id" title="keyword">Type</span>)<br/>
+&nbsp;&nbsp;(<span class="id" title="var">P</span> : <span class="id" title="var">list</span> <span class="id" title="var">A</span> -&gt; <span class="id" title="keyword">Prop</span>)<br/>
+&nbsp;&nbsp;(<span class="id" title="var">baseCase</span> : <span class="id" title="var">P</span> <span class="id" title="var">nil</span>)<br/>
+&nbsp;&nbsp;(<span class="id" title="var">inductiveCase</span> : <span class="id" title="keyword">forall</span> (<span class="id" title="var">h</span> : <span class="id" title="var">A</span>) (<span class="id" title="var">t</span> : <span class="id" title="var">list</span> <span class="id" title="var">A</span>), <span class="id" title="var">P</span> <span class="id" title="var">t</span> -&gt; <span class="id" title="var">P</span> (<span class="id" title="var">h</span>::<span class="id" title="var">t</span>))<br/>
+&nbsp;&nbsp;(<span class="id" title="var">lst</span> : <span class="id" title="var">list</span> <span class="id" title="var">A</span>)<br/>
+&nbsp;&nbsp;: <span class="id" title="var">P</span> <span class="id" title="var">lst</span><br/>
+:=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">lst</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">nil</span> =&gt; <span class="id" title="var">baseCase</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">h</span>::<span class="id" title="var">t</span> =&gt; <span class="id" title="var">inductiveCase</span> <span class="id" title="var">h</span> <span class="id" title="var">t</span><br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">my_list_rect</span> <span class="id" title="var">A</span> <span class="id" title="var">P</span> <span class="id" title="var">baseCase</span> <span class="id" title="var">inductiveCase</span> <span class="id" title="var">t</span>)<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+The arguments to <span class="inlinecode"><span class="id" title="var">my_list_rect</span></span> are the same as the arguments to <span class="inlinecode"><span class="id" title="var">list_ind</span></span>:
+an element type, a property to be proved, a proof of the base case, and a proof
+of the inductive case.  Then <span class="inlinecode"><span class="id" title="var">my_list_rect</span></span> takes an argument <span class="inlinecode"><span class="id" title="var">lst</span></span>, which is
+the list for which we want to prove that <span class="inlinecode"><span class="id" title="var">P</span></span> holds.  Finally, <span class="inlinecode"><span class="id" title="var">my_list_rect</span></span>
+returns that proof specifically for <span class="inlinecode"><span class="id" title="var">lst</span></span>.
+
+<div class="paragraph"> </div>
+
+The body of <span class="inlinecode"><span class="id" title="var">my_list_rect</span></span> constructs the proof that <span class="inlinecode"><span class="id" title="var">P</span></span> holds of <span class="inlinecode"><span class="id" title="var">lst</span></span>.
+It does so by matching against <span class="inlinecode"><span class="id" title="var">lst</span></span>:
+
+<div class="paragraph"> </div>
+
+<ul class="doclist">
+<li> If <span class="inlinecode"><span class="id" title="var">lst</span></span> is empty, then <span class="inlinecode"><span class="id" title="var">my_list_rect</span></span> returns the proof of the base case.
+
+<div class="paragraph"> </div>
+
+
+</li>
+<li> If <span class="inlinecode"><span class="id" title="var">lst</span></span> is <span class="inlinecode"><span class="id" title="var">h</span>::<span class="id" title="var">t</span></span>, then <span class="inlinecode"><span class="id" title="var">my_list_rect</span></span> returns the proof of the inductive
+  case.  To construct that proof, it applies <span class="inlinecode"><span class="id" title="var">inductiveCase</span></span> to <span class="inlinecode"><span class="id" title="var">h</span></span> and <span class="inlinecode"><span class="id" title="var">t</span></span> as
+  the head and tail.  But <span class="inlinecode"><span class="id" title="var">inductiveCase</span></span> also requires a final argument, which
+  is the proof that <span class="inlinecode"><span class="id" title="var">P</span></span> holds of <span class="inlinecode"><span class="id" title="var">t</span></span>.  To construct that proof, <span class="inlinecode"><span class="id" title="var">my_list_rect</span></span>
+  calls itself recursively on <span class="inlinecode"><span class="id" title="var">t</span></span>.
+
+</li>
+</ul>
+
+<div class="paragraph"> </div>
+
+That recursive call is exactly why we said that inductive proofs are recursive
+programs.  The inductive proof needs evidence that the inductive hypothesis
+holds of the smaller list, and recursing on that smaller list produces the
+evidence.
+
+<div class="paragraph"> </div>
+
+It's not immediately obvious, but <span class="inlinecode"><span class="id" title="var">my_list_rect</span></span> is almost just <span class="inlinecode"><span class="id" title="var">fold_right</span></span>.
+Here's how we could implement <span class="inlinecode"><span class="id" title="var">fold_right</span></span> in Coq, with a slightly different
+argument order than the same function in OCaml: 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">my_fold_right</span><br/>
+&nbsp;&nbsp;{<span class="id" title="var">A</span> <span class="id" title="var">B</span> : <span class="id" title="keyword">Type</span>}<br/>
+&nbsp;&nbsp;(<span class="id" title="var">init</span> : <span class="id" title="var">B</span>)<br/>
+&nbsp;&nbsp;(<span class="id" title="var">f</span> : <span class="id" title="var">A</span> -&gt; <span class="id" title="var">B</span> -&gt; <span class="id" title="var">B</span>)<br/>
+&nbsp;&nbsp;(<span class="id" title="var">lst</span> : <span class="id" title="var">list</span> <span class="id" title="var">A</span>)<br/>
+:=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">lst</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">nil</span> =&gt; <span class="id" title="var">init</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">h</span>::<span class="id" title="var">t</span> =&gt; <span class="id" title="var">f</span> <span class="id" title="var">h</span> (<span class="id" title="var">my_fold_right</span> <span class="id" title="var">init</span> <span class="id" title="var">f</span> <span class="id" title="var">t</span>)<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Now compare the body of <span class="inlinecode"><span class="id" title="var">my_fold_right</span></span> with <span class="inlinecode"><span class="id" title="var">my_list_rect</span></span>:
+
+<div class="paragraph"> </div>
+
+<pre>
+my_fold_right's body:
+
+  match lst with
+  | nil =&gt; init
+  | h::t =&gt; f h (my_fold_right init f t)
+  end.
+
+my_list_rect's body:
+
+  match lst with
+  | nil =&gt; baseCase
+  | h::t =&gt; inductiveCase h t (my_list_rect A P baseCase inductiveCase t)
+  end.
+</pre>
+
+<div class="paragraph"> </div>
+
+Both match against <span class="inlinecode"><span class="id" title="var">lst</span></span>.  If <span class="inlinecode"><span class="id" title="var">lst</span></span> is empty, both return an initial/base-case
+value.  If <span class="inlinecode"><span class="id" title="var">lst</span></span> is non-empty, both recurse on the tail, then pass the result of
+the recursive call to a function (<span class="inlinecode"><span class="id" title="var">f</span></span> or <span class="inlinecode"><span class="id" title="var">inductiveCase</span></span>) that combines that
+result with the head.  The only essential difference is that <span class="inlinecode"><span class="id" title="var">f</span></span> does not take
+<span class="inlinecode"><span class="id" title="var">t</span></span> directly as an input, whereas <span class="inlinecode"><span class="id" title="var">inductiveCase</span></span> does.
+
+<div class="paragraph"> </div>
+
+So there you have it:  induction over a list is really just folding over the
+list, eventually reaching the empty list and returning the proof of the base
+case for it, then working the way back up the call stack, assembling an
+ever-larger proof for each element of the list.  <b>An inductive proof is a
+recursive program.</b>
+
+<div class="paragraph"> </div>
+
+Going back to the actual definition of <span class="inlinecode"><span class="id" title="var">list_rect</span></span>, here it is: 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Print</span> <span class="id" title="var">list_rect</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Coq responds:
+<pre>
+list_rect =
+fun (A : Type) (P : list A -&gt; Type) (f : P nil)
+  (f0 : forall (a : A) (l : list A), P l -&gt; P (a :: l)) =&gt;
+fix F (l : list A) : P l :=
+  match l as l0 return (P l0) with
+  | nil =&gt; f
+  | y :: l0 =&gt; f0 y l0 (F l0)
+  end
+     : forall (A : Type) (P : list A -&gt; Type),
+       P nil -&gt;
+       (forall (a : A) (l : list A), P l -&gt; P (a :: l)) -&gt;
+       forall l : list A, P l
+</pre>
+
+<div class="paragraph"> </div>
+
+That uses different syntax, but it ends up defining the same function as
+<span class="inlinecode"><span class="id" title="var">my_list_rect</span></span>.
+
+<div class="paragraph"> </div>
+
+Whenever you define an inductive type, Coq automatically generates the induction
+principle and recursive function that implements it for you. For example, we
+could define our own lists: 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Inductive</span> <span class="id" title="var">mylist</span> (<span class="id" title="var">A</span>:<span class="id" title="keyword">Type</span>) : <span class="id" title="keyword">Type</span> :=<br/>
+| <span class="id" title="var">mynil</span> : <span class="id" title="var">mylist</span> <span class="id" title="var">A</span><br/>
+| <span class="id" title="var">mycons</span> : <span class="id" title="var">A</span> -&gt; <span class="id" title="var">mylist</span> <span class="id" title="var">A</span> -&gt; <span class="id" title="var">mylist</span> <span class="id" title="var">A</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Coq automatically generates <span class="inlinecode"><span class="id" title="var">mylist_ind</span></span> for us: 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Print</span> <span class="id" title="var">mylist_ind</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+
+<div class="paragraph"> </div>
+
+<a name="lab9"></a><h2 class="section">Extraction</h2>
+
+
+<div class="paragraph"> </div>
+
+Coq makes it possible to <i>extract</i> OCaml code (or Haskell or Scheme) from
+Coq code.  That makes it possible for us to
+
+<div class="paragraph"> </div>
+
+<ul class="doclist">
+<li> write Coq code,
+
+</li>
+<li> prove the Coq code is correct, and
+
+</li>
+<li> extract OCaml code that can be compiled and run more efficiently
+  than the original Coq code.
+
+</li>
+</ul>
+
+<div class="paragraph"> </div>
+
+Let's first prove that a tail recursive factorial is equivalent to the non-tail-recursive one, and then extract the code for the tail recursive factorial.
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">fact</span> (<span class="id" title="var">n</span>:<span class="id" title="var">nat</span>) : <span class="id" title="var">nat</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">n</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| 0 =&gt; 1<br/>
+&nbsp;&nbsp;| <span class="id" title="var">S</span> <span class="id" title="var">k</span> =&gt; <span class="id" title="var">n</span> * <span class="id" title="var">fact</span> <span class="id" title="var">k</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">fact_tail_rec'</span> (<span class="id" title="var">n</span> : <span class="id" title="var">nat</span>) (<span class="id" title="var">acc</span>: <span class="id" title="var">nat</span>) : <span class="id" title="var">nat</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">n</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| 0 =&gt; <span class="id" title="var">acc</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">S</span> <span class="id" title="var">k</span> =&gt; <span class="id" title="var">fact_tail_rec'</span> <span class="id" title="var">k</span> (<span class="id" title="var">acc</span> * <span class="id" title="var">n</span>)<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">fact_tail_rec</span> (<span class="id" title="var">n</span> : <span class="id" title="var">nat</span>) := <span class="id" title="var">fact_tail_rec'</span> <span class="id" title="var">n</span> 1.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+We need to prove an intermediate lemma about <span class="inlinecode"><span class="id" title="var">fact_tail_rec'</span></span> for the proof of our main theorem to go through.
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Lemma</span> <span class="id" title="var">fact_tail_rec_lem</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">n</span> <span class="id" title="var">acc</span>,<br/>
+&nbsp;&nbsp;<span class="id" title="var">fact_tail_rec'</span> <span class="id" title="var">n</span> <span class="id" title="var">acc</span> = <span class="id" title="var">acc</span> * <span class="id" title="var">fact_tail_rec'</span> <span class="id" title="var">n</span> 1.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intro</span> <span class="id" title="var">n</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">induction</span> <span class="id" title="var">n</span>.<br/>
+&nbsp;&nbsp;- <span class="id" title="tactic">intro</span> <span class="id" title="var">acc</span>. <span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">ring</span>.<br/>
+&nbsp;&nbsp;- <span class="id" title="tactic">intro</span> <span class="id" title="var">acc</span>. <span class="id" title="tactic">simpl</span> (<span class="id" title="var">fact_tail_rec'</span> (<span class="id" title="var">S</span> <span class="id" title="var">n</span>) 1). <span class="id" title="tactic">rewrite</span> <span class="id" title="var">IHn</span>. <span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">rewrite</span> <span class="id" title="var">IHn</span>. <span class="id" title="tactic">ring</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+In the above proof, the <span class="inlinecode"><span class="id" title="tactic">simpl</span></span> tactic is applied with a specific pattern only on which simplification occurs. This is done so that the subsequent <span class="inlinecode"><span class="id" title="tactic">rewrite</span></span> tactic does not pick the wrong term to rewrite. Try changing <span class="inlinecode"><span class="id" title="tactic">simpl</span></span> <span class="inlinecode">(<span class="id" title="var">fact_tail_rec'</span></span> <span class="inlinecode">(<span class="id" title="var">S</span></span> <span class="inlinecode"><span class="id" title="var">n</span>)</span> <span class="inlinecode">1)</span> to <span class="inlinecode"><span class="id" title="tactic">simpl</span></span> and make the proof go through.
+
+<div class="paragraph"> </div>
+
+Now we are ready to prove our main theorem. The proof involves induction on the input and an application of the lemma <span class="inlinecode"><span class="id" title="var">fact_tail_rec_lem</span></span> that we had proved.
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">fact_tail_rec_ok</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">n</span>, <span class="id" title="var">fact</span> <span class="id" title="var">n</span> = <span class="id" title="var">fact_tail_rec</span> <span class="id" title="var">n</span>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">unfold</span> <span class="id" title="var">fact_tail_rec</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">induction</span> <span class="id" title="var">n</span>.<br/>
+&nbsp;&nbsp;- <span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">trivial</span>.<br/>
+&nbsp;&nbsp;- <span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">rewrite</span> <span class="id" title="var">fact_tail_rec_lem</span>. <span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">rewrite</span> <span class="id" title="var">IHn</span>. <span class="id" title="tactic">ring</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+Let's extract <span class="inlinecode"><span class="id" title="var">fact_tail_rec</span></span> as an example.
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="keyword">Extraction</span>.<br/>
+<span class="id" title="keyword">Extraction</span> <span class="id" title="var">Language</span> <span class="id" title="var">OCaml</span>.<br/>
+<span class="id" title="keyword">Extraction</span> "/tmp/fact.ml" <span class="id" title="var">fact_tail_rec</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+That produces the following file:
+
+<div class="paragraph"> </div>
+
+<pre>
+
+type nat =
+| O
+| S of nat
+
+(** val add : nat -&gt; nat -&gt; nat **)
+
+let rec add n m =
+  match n with
+  | O -&gt; m
+  | S p -&gt; S (add p m)
+
+(** val mul : nat -&gt; nat -&gt; nat **)
+
+let rec mul n m =
+  match n with
+  | O -&gt; O
+  | S p -&gt; add m (mul p m)
+
+(** val fact_tail_rec' : nat -&gt; nat -&gt; nat **)
+
+let rec fact_tail_rec' n acc =
+  match n with
+  | O -&gt; acc
+  | S k -&gt; fact_tail_rec' k (mul acc n)
+
+(** val fact_tail_rec : nat -&gt; nat **)
+
+let fact_tail_rec n =
+  fact_tail_rec' n (S O)
+
+</pre>
+
+<div class="paragraph"> </div>
+
+As you can see, Coq has preserved the <span class="inlinecode"><span class="id" title="var">nat</span></span> type in this extracted
+code.  Unforunately, computation on natural numbers is not efficient.
+(Addition requires linear time; multiplication, quadratic!)
+
+<div class="paragraph"> </div>
+
+We can direct Coq to extract its own <span class="inlinecode"><span class="id" title="var">nat</span></span> type to OCaml's <span class="inlinecode"><span class="id" title="var">int</span></span>
+type as follows:
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Extract</span> <span class="id" title="keyword">Inductive</span> <span class="id" title="var">nat</span> =&gt;<br/>
+&nbsp;&nbsp;<span class="id" title="var">int</span> [ "0" "succ" ] "(fun fO fS n -&gt; if n=0 then fO () else fS (n-1))".<br/>
+<span class="id" title="keyword">Extract</span> <span class="id" title="var">Inlined</span> <span class="id" title="var">Constant</span> <span class="id" title="var">Init.Nat.mul</span> =&gt; "( * )".<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+The first command says to
+
+<div class="paragraph"> </div>
+
+<ul class="doclist">
+<li> use <span class="inlinecode"><span class="id" title="var">int</span></span> instead of <span class="inlinecode"><span class="id" title="var">nat</span></span> in the extract code,
+
+</li>
+<li> use <span class="inlinecode">0</span> instead of <span class="inlinecode"><span class="id" title="var">O</span></span> and <span class="inlinecode"><span class="id" title="var">succ</span></span> instead of <span class="inlinecode"><span class="id" title="var">S</span></span>
+  (the <span class="inlinecode"><span class="id" title="var">succ</span></span> function is in <span class="inlinecode"><span class="id" title="var">Pervasives</span></span> and is <span class="inlinecode"><span class="id" title="keyword">fun</span></span> <span class="inlinecode"><span class="id" title="var">x</span></span> <span class="inlinecode">-&gt;</span> <span class="inlinecode"><span class="id" title="var">x</span></span> <span class="inlinecode">+</span> <span class="inlinecode">1</span>), and
+
+</li>
+<li> use the provided function to emulate pattern matching over the type.
+
+</li>
+</ul>
+
+<div class="paragraph"> </div>
+
+The second command says to use OCaml's integer <span class="inlinecode">(</span> <span class="inlinecode">*</span> <span class="inlinecode">)</span> operator instead of
+Coq's natural-number multiplication operator.
+
+<div class="paragraph"> </div>
+
+After issuing those commands, the extraction looks cleaner:
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Extraction</span> "/tmp/fact.ml" <span class="id" title="var">fact_tail_rec</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<pre>
+
+(** val fact_tail_rec' : int -&gt; int -&gt; int **)
+
+let rec fact_tail_rec' n acc =
+  (fun fO fS n -&gt; if n=0 then fO () else fS (n-1))
+    (fun _ -&gt; acc)
+    (fun k -&gt; fact_tail_rec' k (( * ) acc n))
+    n
+
+(** val fact_tail_rec : int -&gt; int **)
+
+let fact_tail_rec n =
+  fact_tail_rec' n (succ 0)
+
+</pre>
+
+<div class="paragraph"> </div>
+
+There is, however, a tradeoff.  The original version we extracted worked
+(albeit inefficiently) for arbitrarily large numbers without any error.
+But the second version is subject to integer overflow errors.  So the
+proofs of correctness that we did for <span class="inlinecode"><span class="id" title="var">fact_tail_rec</span></span> are no longer completely
+applicable:  they hold only up to the limits of the types we subsituted
+during extraction.
+
+<div class="paragraph"> </div>
+
+Do we truly care about the limits of machine arithmetic?  Maybe, maybe not.
+For sake of this little example, we might not.  If we were verifying
+software to control the flight dynamics of a space shuttle, maybe we
+would.  The Coq standard library does contain a module 31-bit
+integers and operators on them, which we could use if we wanted to
+precisely model what would happen on a particular architecture.
+
+<div class="paragraph"> </div>
+
+
+<div class="paragraph"> </div>
+
+
+<div class="paragraph"> </div>
+
+
+<div class="paragraph"> </div>
+
+<a name="lab10"></a><h2 class="section">Summary</h2>
+
+
+<div class="paragraph"> </div>
+
+Coq excels as a proof assistant when it comes to proof by induction.  Whenever
+we define an inductive type, Coq generates an induction principle for us
+automatically.  That principle is really a recursive program that knows how to
+assemble evidence for a proposition, given the constructors of the inductive
+type.  The <span class="inlinecode"><span class="id" title="tactic">induction</span></span> tactic manages the proof for us, automatically figuring
+out what the base case and the inductive case, and automatically generating the
+inductive hypothesis.
+
+<div class="paragraph"> </div>
+
+<a name="lab11"></a><h2 class="section">Terms and concepts</h2>
+
+
+<div class="paragraph"> </div>
+
+<ul class="doclist">
+<li> append
+
+</li>
+<li> base case
+
+</li>
+<li> field
+
+</li>
+<li> <span class="inlinecode"><span class="id" title="keyword">fix</span></span>
+
+</li>
+<li> <span class="inlinecode"><span class="id" title="keyword">Fixpoint</span></span>
+
+</li>
+<li> induction
+
+</li>
+<li> induction principle
+
+</li>
+<li> inductive case
+
+</li>
+<li> inductive hypothesis
+
+</li>
+<li> lemma
+
+</li>
+<li> Peano natural numbers
+
+</li>
+<li> <span class="inlinecode"><span class="id" title="keyword">Prop</span></span> vs <span class="inlinecode"><span class="id" title="var">bool</span></span>
+
+</li>
+<li> ring
+
+</li>
+<li> searching for library theorems
+
+</li>
+<li> semi-ring
+
+</li>
+<li> syntactically smaller restriction on recursive calls
+
+</li>
+</ul>
+
+<div class="paragraph"> </div>
+
+<a name="lab12"></a><h2 class="section">Tactics</h2>
+
+
+<div class="paragraph"> </div>
+
+<ul class="doclist">
+<li> <span class="inlinecode"><span class="id" title="tactic">field</span></span>
+
+</li>
+<li> <span class="inlinecode"><span class="id" title="tactic">induction</span></span>
+
+</li>
+<li> <span class="inlinecode"><span class="id" title="tactic">rewrite</span></span>
+
+</li>
+<li> <span class="inlinecode"><span class="id" title="tactic">ring</span></span>
+
+</li>
+<li> tacticals: <span class="inlinecode"><span class="id" title="tactic">try</span></span>
+
+</li>
+</ul>
+
+<div class="paragraph"> </div>
+
+<a name="lab13"></a><h2 class="section">Further reading</h2>
+
+
+<div class="paragraph"> </div>
+
+<ul class="doclist">
+<li> <i>Software Foundations, Volume 1: Logical Foundations</i>.
+  <a href="https://softwarefoundations.cis.upenn.edu/lf-current/toc.html">
+  Chapter 2 through 4: Induction, Lists, Poly</a>.
+
+<div class="paragraph"> </div>
+
+
+</li>
+<li> <i>Interactive Theorem Proving and Program Development</i>.
+  Chapters 6 through 10. Available
+  <a href="https://newcatalog.library.cornell.edu/catalog/10131206">
+  online from the Cornell library</a>.
+
+</li>
+</ul>
+
+<div class="paragraph"> </div>
+
+
+</div>
+<div class="code">
+</div>
+</div>
+
+<div id="footer">
+<hr/><a href="index.html">Index</a><hr/>This page has been generated by <a href="http://coq.inria.fr/">coqdoc</a>
+</div>
+
+</div>
+
+</body>
+</html>

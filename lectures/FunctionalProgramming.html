@@ -1,0 +1,1062 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<link href="coqdoc.css" rel="stylesheet" type="text/css" />
+<title>FunctionalProgramming</title>
+</head>
+
+<body>
+
+<div id="page">
+
+<div id="header">
+</div>
+
+<div id="main">
+
+<h1 class="libtitle">Library FunctionalProgramming</h1>
+
+<div class="code">
+</div>
+
+<div class="doc">
+<a name="lab1"></a><h1 class="section">Functional Programming in Coq</h1>
+
+
+<div class="paragraph"> </div>
+
+  From: https://www.cs.cornell.edu/courses/cs3110/2018sp/l/19-coq-fp/notes.v
+<hr/>
+
+<i>
+Topics:
+
+<div class="paragraph"> </div>
+
+<ul class="doclist">
+<li> types and functions
+
+</li>
+<li> theorems and proofs
+
+</li>
+<li> lists
+
+</li>
+<li> options
+
+</li>
+</ul>
+</i>
+
+<div class="paragraph"> </div>
+
+<hr/>
+
+
+<div class="paragraph"> </div>
+
+<i>Mega super hyper serious tip</i>:  You absolutely must step through this file
+interactively in Coq to understand what's going on.  Observe what happens
+to the proof state and in the output window.  Just reading this file
+in your browser does not suffice!
+
+<div class="paragraph"> </div>
+
+
+<div class="paragraph"> </div>
+
+<a name="lab2"></a><h2 class="section">Types and functions</h2>
+
+
+<div class="paragraph"> </div>
+
+Let's start by doing some basic functional programming in Coq.
+We'll define a type which represents the days of the week.
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Inductive</span> <span class="id" title="var">day</span> : <span class="id" title="keyword">Type</span> :=<br/>
+| <span class="id" title="var">sun</span> : <span class="id" title="var">day</span><br/>
+| <span class="id" title="var">mon</span> : <span class="id" title="var">day</span><br/>
+| <span class="id" title="var">tue</span> : <span class="id" title="var">day</span><br/>
+| <span class="id" title="var">wed</span> : <span class="id" title="var">day</span><br/>
+| <span class="id" title="var">thu</span> : <span class="id" title="var">day</span><br/>
+| <span class="id" title="var">fri</span> : <span class="id" title="var">day</span><br/>
+| <span class="id" title="var">sat</span> : <span class="id" title="var">day</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+You'll note some differences from OCaml:
+
+<div class="paragraph"> </div>
+
+<ul class="doclist">
+<li> The definition starts with the keyword <span class="inlinecode"><span class="id" title="keyword">Inductive</span></span> instead of the keyword
+  <span class="inlinecode"><span class="id" title="keyword">type</span></span>.
+
+<div class="paragraph"> </div>
+
+
+</li>
+<li> <span class="inlinecode"><span class="id" title="var">day</span></span> has a type itself, <span class="inlinecode"><span class="id" title="keyword">Type</span></span>.  Essentially this is saying that <span class="inlinecode"><span class="id" title="var">day</span></span> is a
+  type.
+
+<div class="paragraph"> </div>
+
+
+</li>
+<li> The definition uses <span class="inlinecode">:=</span> instead of <span class="inlinecode">=</span>.
+
+<div class="paragraph"> </div>
+
+
+</li>
+<li> Every constructor is explicitly given the type <span class="inlinecode"><span class="id" title="var">day</span></span>. Later we'll see that
+  constructors can have more complicated types.
+
+<div class="paragraph"> </div>
+
+
+</li>
+<li> The definition must end with a period.
+
+</li>
+</ul>
+
+<div class="paragraph"> </div>
+
+
+<div class="paragraph"> </div>
+
+Here's a function that returns the next day after its input.
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Let</span> <span class="id" title="var">next_day</span> <span class="id" title="var">d</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">d</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">sun</span> =&gt; <span class="id" title="var">mon</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">mon</span> =&gt; <span class="id" title="var">tue</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">tue</span> =&gt; <span class="id" title="var">wed</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">wed</span> =&gt; <span class="id" title="var">thu</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">thu</span> =&gt; <span class="id" title="var">fri</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">fri</span> =&gt; <span class="id" title="var">sat</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">sat</span> =&gt; <span class="id" title="var">sun</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Again, there are some small differences from OCaml:
+
+<div class="paragraph"> </div>
+
+<ul class="doclist">
+<li> The <span class="inlinecode"><span class="id" title="keyword">Let</span></span> keyword is capitalized.
+
+<div class="paragraph"> </div>
+
+
+</li>
+<li> The pattern match must end with the <span class="inlinecode"><span class="id" title="keyword">end</span></span> keyword.
+
+<div class="paragraph"> </div>
+
+
+</li>
+<li> The branches use <span class="inlinecode">=&gt;</span> instead of <span class="inlinecode">-&gt;</span> to separate the pattern from the value
+  to be returned.
+
+</li>
+</ul>
+
+<div class="paragraph"> </div>
+
+Although we can use <span class="inlinecode"><span class="id" title="keyword">Let</span></span> in Coq, it's usually more idiomatic to write
+<span class="inlinecode"><span class="id" title="keyword">Definition</span></span> instead, because <span class="inlinecode"><span class="id" title="keyword">Let</span></span> is actually substituted away.
+We could instead write the following:
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">prev_day</span> <span class="id" title="var">d</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">d</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">sun</span> =&gt; <span class="id" title="var">sat</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">mon</span> =&gt; <span class="id" title="var">sun</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">tue</span> =&gt; <span class="id" title="var">mon</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">wed</span> =&gt; <span class="id" title="var">tue</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">thu</span> =&gt; <span class="id" title="var">wed</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">fri</span> =&gt; <span class="id" title="var">thu</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">sat</span> =&gt; <span class="id" title="var">fri</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+
+<div class="paragraph"> </div>
+
+<a name="lab3"></a><h2 class="section">Theorems and proofs</h2>
+
+
+<div class="paragraph"> </div>
+
+Now let's prove some small theorems about programs that use days.
+
+<div class="paragraph"> </div>
+
+First, let's prove that applying <span class="inlinecode"><span class="id" title="var">next_day</span></span> to <span class="inlinecode"><span class="id" title="var">tue</span></span> evaluates to <span class="inlinecode"><span class="id" title="var">wed</span></span>.
+If you were going to do that with a more informal proof in natural
+language, your first instinct might be to say "it's obvious."  That's
+kind of what the proof below does.
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">wed_after_tue</span> : <span class="id" title="var">next_day</span> <span class="id" title="var">tue</span> = <span class="id" title="var">wed</span>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">auto</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<span class="inlinecode"><span class="id" title="tactic">auto</span></span> is a <i>tactic</i> that searches for a proof. Tactics are the commands
+written between <span class="inlinecode"><span class="id" title="keyword">Proof</span></span> and <span class="inlinecode"><span class="id" title="keyword">Qed</span></span>; they manipulate the <i>proof state</i>, which is
+all the <i>subgoals</i> that need to be proved before the proof is finished.  We can
+see the proof <span class="inlinecode"><span class="id" title="tactic">auto</span></span> found by printing the theorem: 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Print</span> <span class="id" title="var">wed_after_tue</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+The output of that is <span class="inlinecode"><span class="id" title="var">wed_after_tue</span></span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">eq_refl</span></span> <span class="inlinecode">:</span> <span class="inlinecode"><span class="id" title="var">next_day</span></span> <span class="inlinecode"><span class="id" title="var">tue</span></span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">wed</span></span>, which
+indicates that <span class="inlinecode"><span class="id" title="var">wed_after_tue</span></span> is equal to <span class="inlinecode"><span class="id" title="var">eq_refl</span></span> and proves that <span class="inlinecode"><span class="id" title="var">next_day</span></span>
+<span class="inlinecode"><span class="id" title="var">tue</span></span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">wed</span></span>. Here, <span class="inlinecode"><span class="id" title="var">eq_refl</span></span> is something from the Coq standard library that says
+equality is <i>reflexive</i>, and that computation may be performed on either side of
+the equality to reduce the expression that appears there to a simpler
+expression. 
+<div class="paragraph"> </div>
+
+ Rarely, though, is a theorem so simple that it can immediately be proved by
+searching for a proof. Usually we need to provide Coq with more explicit
+guidance. A more careful informal proof of the theorem might read "<span class="inlinecode"><span class="id" title="var">next_day</span></span>
+<span class="inlinecode"><span class="id" title="var">tue</span></span> evaluates to <span class="inlinecode"><span class="id" title="var">wed</span></span>.  So the equality to be proved reduces to <span class="inlinecode"><span class="id" title="var">wed</span></span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">wed</span></span>.
+That trivially holds."  That is essentially the proof that strategy that is
+followed below: 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">wed_after_tue'</span> : <span class="id" title="var">next_day</span> <span class="id" title="var">tue</span> = <span class="id" title="var">wed</span>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">trivial</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Printing the theorem shows that it's still the same proof that is found by
+<span class="inlinecode"><span class="id" title="tactic">auto</span></span>. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Print</span> <span class="id" title="var">wed_after_tue'</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+The output of that is <span class="inlinecode"><span class="id" title="var">wed_after_tue'</span></span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">eq_refl</span></span> <span class="inlinecode">:</span> <span class="inlinecode"><span class="id" title="var">next_day</span></span> <span class="inlinecode"><span class="id" title="var">tue</span></span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">wed</span></span>.
+
+<div class="paragraph"> </div>
+
+ Next, let's prove that the day of the week never repeats.  That is, the day
+after a given day <span class="inlinecode"><span class="id" title="var">d</span></span> is never equal to <span class="inlinecode"><span class="id" title="var">d</span></span>. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">day_never_repeats</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">d</span> : <span class="id" title="var">day</span>, <span class="id" title="var">next_day</span> <span class="id" title="var">d</span> &lt;&gt; <span class="id" title="var">d</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Again, you might say "that's obvious."  But in this case, it's not obvious
+enough for <span class="inlinecode"><span class="id" title="tactic">auto</span></span> to find a proof. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Proof</span>. <span class="id" title="tactic">auto</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+So here's a better strategy:  consider all the possible values that <span class="inlinecode"><span class="id" title="var">d</span></span>
+could have: <span class="inlinecode"><span class="id" title="var">sun</span></span>, <span class="inlinecode"><span class="id" title="var">mon</span></span>, etc.  Now consider instantiating what the theorem says
+for each:
+
+<div class="paragraph"> </div>
+
+<ul class="doclist">
+<li> <span class="inlinecode"><span class="id" title="var">next_day</span></span> <span class="inlinecode"><span class="id" title="var">sun</span></span> <span class="inlinecode">&lt;&gt;</span> <span class="inlinecode"><span class="id" title="var">sun</span></span>
+
+</li>
+<li> <span class="inlinecode"><span class="id" title="var">next_day</span></span> <span class="inlinecode"><span class="id" title="var">mon</span></span> <span class="inlinecode">&lt;&gt;</span> <span class="inlinecode"><span class="id" title="var">mon</span></span>
+
+</li>
+<li> etc.
+
+</li>
+</ul>
+
+<div class="paragraph"> </div>
+
+In each case, if we reduce the expression on the left to a value, we get an
+inequality that's more obviously true:
+
+<div class="paragraph"> </div>
+
+<ul class="doclist">
+<li> <span class="inlinecode"><span class="id" title="var">mon</span></span> <span class="inlinecode">&lt;&gt;</span> <span class="inlinecode"><span class="id" title="var">sun</span></span>
+
+</li>
+<li> <span class="inlinecode"><span class="id" title="var">tue</span></span> <span class="inlinecode">&lt;&gt;</span> <span class="inlinecode"><span class="id" title="var">mon</span></span>
+
+</li>
+<li> etc.
+
+</li>
+</ul>
+
+<div class="paragraph"> </div>
+
+The reason that <span class="inlinecode"><span class="id" title="var">mon</span></span> <span class="inlinecode">&lt;&gt;</span> <span class="inlinecode"><span class="id" title="var">sun</span></span> is that they are different constructors of an
+inductive (i.e., variant) type, and different constructors can never be equal.
+
+<div class="paragraph"> </div>
+
+This is a proof strategy that Coq will understand.  To implement it, we need two
+new tactics:
+
+<div class="paragraph"> </div>
+
+<ul class="doclist">
+<li> <span class="inlinecode"><span class="id" title="tactic">destruct</span></span> is a tactic that considers all the possible ways to construct
+  an inductive type.
+
+<div class="paragraph"> </div>
+
+
+</li>
+<li> <span class="inlinecode"><span class="id" title="tactic">discriminate</span></span> is a tactic that proves different constructors cannot be equal.
+
+</li>
+</ul>
+
+</div>
+<div class="code">
+
+<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">d</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">d</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">discriminate</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">discriminate</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">discriminate</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">discriminate</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">discriminate</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">discriminate</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">simpl</span>. <span class="id" title="tactic">discriminate</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+The first step of this proof, <span class="inlinecode"><span class="id" title="tactic">intros</span></span> <span class="inlinecode"><span class="id" title="var">d</span></span>, <i>introduces</i> <span class="inlinecode"><span class="id" title="var">d</span></span>.  Think of it
+like saying "let <span class="inlinecode"><span class="id" title="var">d</span></span> be some arbitrary <span class="inlinecode"><span class="id" title="var">day</span></span>."  The second step of the proof,
+<span class="inlinecode"><span class="id" title="tactic">destruct</span></span> <span class="inlinecode"><span class="id" title="var">d</span></span>, instructs Coq to do case analysis on <span class="inlinecode"><span class="id" title="var">d</span></span>.  The next seven lines
+apply <span class="inlinecode"><span class="id" title="tactic">simpl</span></span> then <span class="inlinecode"><span class="id" title="tactic">discriminate</span></span> 7 times, once for each possible day in the
+case analysis.
+
+<div class="paragraph"> </div>
+
+That repetition of the same tactic is rather ugly.  First, we don't actually
+need to use <span class="inlinecode"><span class="id" title="tactic">simpl</span></span>.  In fact, <span class="inlinecode"><span class="id" title="tactic">discriminate</span></span> will do simplification itself, as
+will many other tactics.  Second, instead of writing <span class="inlinecode"><span class="id" title="tactic">discriminate</span></span> 7 times, we
+could instead write <span class="inlinecode"><span class="id" title="var">all</span>:</span> <span class="inlinecode"><span class="id" title="tactic">discriminate</span></span>.  That means to use <span class="inlinecode"><span class="id" title="tactic">discriminate</span></span> on
+all the remaining <i>subgoals</i> in the proof. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">day_never_repeats'</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">d</span> : <span class="id" title="var">day</span>, <span class="id" title="var">next_day</span> <span class="id" title="var">d</span> &lt;&gt; <span class="id" title="var">d</span>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">d</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">d</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="var">all</span>: <span class="id" title="tactic">discriminate</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Another way to structure that proof is with the semicolon <i>tactical</i>, which
+chains together tactics.  The tactic <span class="inlinecode"><span class="id" title="var">t1</span>;</span> <span class="inlinecode"><span class="id" title="var">t2</span></span> means to apply tactic <span class="inlinecode"><span class="id" title="var">t1</span></span>, then
+further apply tactic <span class="inlinecode"><span class="id" title="var">t2</span></span> to all the subgoals generated by <span class="inlinecode"><span class="id" title="var">t1</span></span>. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">day_never_repeats''</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">d</span> : <span class="id" title="var">day</span>, <span class="id" title="var">next_day</span> <span class="id" title="var">d</span> &lt;&gt; <span class="id" title="var">d</span>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">d</span>. <span class="id" title="tactic">destruct</span> <span class="id" title="var">d</span>; <span class="id" title="tactic">discriminate</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Now let's prove that if the day after <span class="inlinecode"><span class="id" title="var">d</span></span> is <span class="inlinecode"><span class="id" title="var">tue</span></span>, then <span class="inlinecode"><span class="id" title="var">d</span></span> must be <span class="inlinecode"><span class="id" title="var">mon</span></span>.
+To express that implication in a theorem we use the symbol <span class="inlinecode">-&gt;</span>, where <span class="inlinecode"><span class="id" title="var">A</span></span> <span class="inlinecode">-&gt;</span> <span class="inlinecode"><span class="id" title="var">B</span></span>
+means that if <span class="inlinecode"><span class="id" title="var">A</span></span> is true, then so is <span class="inlinecode"><span class="id" title="var">B</span></span>. 
+</div>
+<div class="code">
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">mon_preceds_tues</span> : <span class="id" title="keyword">forall</span> <span class="id" title="var">d</span> : <span class="id" title="var">day</span>,<br/>
+&nbsp;&nbsp;<span class="id" title="var">next_day</span> <span class="id" title="var">d</span> = <span class="id" title="var">tue</span> -&gt; <span class="id" title="var">d</span> = <span class="id" title="var">mon</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Why does that theorem hold?  An informal argument by case analysis would say
+that of all the 7 possible values of <span class="inlinecode"><span class="id" title="var">d</span></span>, 6 of them immediately fail to make
+<span class="inlinecode"><span class="id" title="var">next_day</span></span> <span class="inlinecode"><span class="id" title="var">d</span></span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">true</span></span> hold,  In fact, only <span class="inlinecode"><span class="id" title="var">d</span>=<span class="id" title="var">mon</span></span> does.  So for each of the 7
+cases, we either have a contradiction, <i>or</i> we have a trivial equality.  In Coq,
+we can express that proof as follows, where we use a new tactical <span class="inlinecode">||</span> for "or".
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">d</span> <span class="id" title="var">next_day_is_tue</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">d</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="var">all</span>: <span class="id" title="tactic">discriminate</span> || <span class="id" title="tactic">trivial</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Let's pick apart that proof.
+
+<div class="paragraph"> </div>
+
+<ul class="doclist">
+<li> The first line introduces two assumptions into the proof:  that <span class="inlinecode"><span class="id" title="var">d</span></span> is a <span class="inlinecode"><span class="id" title="var">day</span></span>,
+  and that <span class="inlinecode"><span class="id" title="var">next_day</span></span> <span class="inlinecode"><span class="id" title="var">d</span></span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">tue</span></span>.  The latter is the <i>antecedent</i> of the
+  implication that is being proved, i.e., the <span class="inlinecode"><span class="id" title="var">P</span></span> in <span class="inlinecode"><span class="id" title="var">P</span></span> <span class="inlinecode">-&gt;</span> <span class="inlinecode"><span class="id" title="var">Q</span></span>; <span class="inlinecode"><span class="id" title="var">Q</span></span> is called the
+  <i>consequent</i>. We chose the name <span class="inlinecode"><span class="id" title="var">next_day_is_tue</span></span> to record that assumption.
+  Idiomatically, Coq programmers will often use short names like <span class="inlinecode"><span class="id" title="var">H</span></span> for these
+  kinds of <i>hypotheses</i>.
+
+<div class="paragraph"> </div>
+
+
+</li>
+<li> The second line does the case analysis on <span class="inlinecode"><span class="id" title="var">d</span></span> as we did before.
+
+<div class="paragraph"> </div>
+
+
+</li>
+<li> The third line says to use <span class="inlinecode"><span class="id" title="tactic">discriminate</span></span> <span class="inlinecode">||</span> <span class="inlinecode"><span class="id" title="tactic">trivial</span></span> on all the subgoals.
+  That works like a short-circuit OR in OCaml:  if <span class="inlinecode"><span class="id" title="tactic">discriminate</span></span> fails
+  to find a proof of the subgoal, then <span class="inlinecode"><span class="id" title="tactic">trivial</span></span> will be used to find
+  the proof instead.
+
+</li>
+</ul>
+
+<div class="paragraph"> </div>
+
+
+<div class="paragraph"> </div>
+
+
+<div class="paragraph"> </div>
+
+<a name="lab4"></a><h2 class="section">Lists</h2>
+
+
+<div class="paragraph"> </div>
+
+The Coq standard library includes lists.  Some parts of the list library are
+already included by default, but not all are.  To load the full list library, we
+need to issue the following commands: 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">List</span>.<br/>
+<span class="id" title="keyword">Import</span> <span class="id" title="var">ListNotations</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Coq lists are defined in essentially the same way as OCaml lists.  A list is
+may contain any number of elements, and each element must have the same type.
+The empty list is represented with <span class="inlinecode"><span class="id" title="var">nil</span></span>, and <span class="inlinecode"><span class="id" title="var">cons</span></span> creates a new list out of
+an element and an already existing list. The standard library defines lists as
+follows: 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Module</span> <span class="id" title="var">MyList</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Inductive</span> <span class="id" title="var">list</span> (<span class="id" title="var">A</span> : <span class="id" title="keyword">Type</span>) : <span class="id" title="keyword">Type</span> :=<br/>
+| <span class="id" title="var">nil</span> : <span class="id" title="var">list</span> <span class="id" title="var">A</span><br/>
+| <span class="id" title="var">cons</span> : <span class="id" title="var">A</span> -&gt; <span class="id" title="var">list</span> <span class="id" title="var">A</span> -&gt; <span class="id" title="var">list</span> <span class="id" title="var">A</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">MyList</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+(We wrapped that definition in its own <span class="inlinecode"><span class="id" title="keyword">Module</span></span> so that, in the rest
+of this file, <span class="inlinecode"><span class="id" title="var">list</span></span> still means the <span class="inlinecode"><span class="id" title="var">list</span></span> in the standard library
+as opposed to the one we just defined ourselves.) 
+<div class="paragraph"> </div>
+
+
+<div class="paragraph"> </div>
+
+Let's compare that to a similar OCaml definition of lists:
+<pre>
+type 'a list = nil | cons of 'a * 'a list
+</pre>
+The <span class="inlinecode">'<span class="id" title="var">a</span></span> is a type variable in the OCaml definition.  Similarly, in the
+Coq definition, <span class="inlinecode"><span class="id" title="var">list</span></span> <span class="inlinecode">(<span class="id" title="var">A</span></span> <span class="inlinecode">:</span> <span class="inlinecode"><span class="id" title="keyword">Type</span>)</span> <span class="inlinecode">:</span> <span class="inlinecode"><span class="id" title="keyword">Type</span></span> indicates that <span class="inlinecode"><span class="id" title="var">list</span></span> is
+parameterized on a type <span class="inlinecode"><span class="id" title="var">A</span></span>.  Hence Coq's <span class="inlinecode"><span class="id" title="var">list</span></span> is a type constructor
+just like OCaml's <span class="inlinecode"><span class="id" title="var">list</span></span> is.  In fact, if we check the type of <span class="inlinecode"><span class="id" title="var">list</span></span>,
+this becomes even clearer:
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Check</span> <span class="id" title="var">list</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<pre>
+list : Type -&gt; Type
+</pre>
+
+<div class="paragraph"> </div>
+
+That is, <span class="inlinecode"><span class="id" title="var">list</span></span> takes a type as input and returns a type as output.
+
+<div class="paragraph"> </div>
+
+Also, notice the branches:
+<pre>
+| nil : list A
+| cons : A -&gt; list A -&gt; list A.
+</pre>
+
+<div class="paragraph"> </div>
+
+These say that <span class="inlinecode"><span class="id" title="var">nil</span></span> already has type <span class="inlinecode"><span class="id" title="var">list</span></span> <span class="inlinecode"><span class="id" title="var">A</span></span>, for any <span class="inlinecode"><span class="id" title="var">A</span></span>, and that <span class="inlinecode"><span class="id" title="var">cons</span></span> is
+a <i>function</i> that takes an <span class="inlinecode"><span class="id" title="var">A</span></span> and a <span class="inlinecode"><span class="id" title="var">list</span></span> <span class="inlinecode"><span class="id" title="var">A</span></span> and returns a <span class="inlinecode"><span class="id" title="var">list</span></span> <span class="inlinecode"><span class="id" title="var">A</span></span>.  So Coq's
+<span class="inlinecode"><span class="id" title="var">cons</span></span> is truly a function, unlike OCaml's.  (In OCaml you can't, for example,
+pass a constructor name to a function.)
+
+<div class="paragraph"> </div>
+
+We can use pattern matching to code functions that take lists as inputs,
+just like in OCaml.
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">is_empty</span> (<span class="id" title="var">A</span> : <span class="id" title="keyword">Type</span>) (<span class="id" title="var">lst</span> : <span class="id" title="var">list</span> <span class="id" title="var">A</span>) :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">lst</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">nil</span> =&gt; <span class="id" title="var">true</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">cons</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> =&gt; <span class="id" title="var">false</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+In <span class="inlinecode"><span class="id" title="var">is_empty</span></span>, we have explicitly given type annotations on two arguments.
+The first argument, <span class="inlinecode"><span class="id" title="var">A</span></span>, is the type of the list elements.  The second argument,
+<span class="inlinecode"><span class="id" title="var">lst</span></span>, has type <span class="inlinecode"><span class="id" title="var">list</span></span> <span class="inlinecode"><span class="id" title="var">A</span></span>. OCaml never made us explicitly write down the element
+type as an input to functions, because the language is engineered to guarantee
+that type inference can always figure out those types.  Coq's type system,
+however, is <i>vastly</i> more expressive that OCaml's, hence type inference is a
+hard problem in Coq.  Coq is therefore more strict about writing these things
+down.
+
+<div class="paragraph"> </div>
+
+Like in OCaml, we can use syntactic sugar for lists, writing <span class="inlinecode">[]</span> for <span class="inlinecode"><span class="id" title="var">nil</span></span>
+and <span class="inlinecode">::</span> for <span class="inlinecode"><span class="id" title="var">cons</span></span>: 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">is_empty_sugar</span> (<span class="id" title="var">A</span> : <span class="id" title="keyword">Type</span>) (<span class="id" title="var">lst</span> : <span class="id" title="var">list</span> <span class="id" title="var">A</span>) :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">lst</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| [] =&gt; <span class="id" title="var">true</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">_</span>::<span class="id" title="var">_</span> =&gt; <span class="id" title="var">false</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+If we want to compute with <span class="inlinecode"><span class="id" title="var">is_empty</span></span>, we have to supply the type argument:
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Compute</span> <span class="id" title="var">is_empty</span> <span class="id" title="var">nat</span> [1].<br/>
+
+<br/>
+<span class="id" title="keyword">Compute</span> <span class="id" title="var">is_empty</span> <span class="id" title="var">nat</span> [].<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+In the second computation above, it wouldn't matter what type we pass in because
+the list is empty, but we do have to provide <i>some</i> type as an argument.
+There are various ways in Coq of making this type argument something that
+the compiler infers, instead of the programmer having to provide.  These
+are called <i>implicit arguments</i>.  Here's one way to make an argument
+implicit:
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">is_empty'</span> {<span class="id" title="var">A</span> : <span class="id" title="keyword">Type</span>} (<span class="id" title="var">lst</span> : <span class="id" title="var">list</span> <span class="id" title="var">A</span>) :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">lst</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| [] =&gt; <span class="id" title="var">true</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">_</span>::<span class="id" title="var">_</span> =&gt; <span class="id" title="var">false</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Compute</span> <span class="id" title="var">is_empty'</span> [1].<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+We put the <span class="inlinecode"><span class="id" title="var">A</span>:<span class="id" title="keyword">Type</span></span> parameter in braces instead of parentheses.  This tells
+Coq that the argument should be inferred.  As you can see, we didn't
+provide it in the example usage.   In fact, Coq would reject
+<span class="inlinecode"><span class="id" title="var">is_empty'</span></span> <span class="inlinecode"><span class="id" title="var">nat</span></span> <span class="inlinecode">[1]</span>, because once we've made the argument implicit,
+we're actually not even allowed to provide it.
+
+<div class="paragraph"> </div>
+
+If for some reason we really did need to explicitly provide an
+implicit argument, we could do that by prefixing the name of the
+function with <span class="inlinecode">@</span>.  For example:
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Compute</span> @<span class="id" title="var">is_empty'</span> <span class="id" title="var">nat</span> [1].<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+To define recursive functions on lists, instead of OCaml's <span class="inlinecode"><span class="id" title="keyword">let</span></span> <span class="inlinecode"><span class="id" title="keyword">rec</span></span>, Coq
+uses <span class="inlinecode"><span class="id" title="keyword">Fixpoint</span></span> as a keyword. That perhaps-cryptic name comes from programming
+languages theory, where recursion can be defined as a so-called <i>fixed point</i> of
+a function.
+
+<div class="paragraph"> </div>
+
+Here is a definition of <span class="inlinecode"><span class="id" title="var">length</span></span> for lists, and an example usage.  Again,
+we do this in its own module to avoid clashing with the standard library's
+definition of <span class="inlinecode"><span class="id" title="var">length</span></span>.
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Module</span> <span class="id" title="var">MyLength</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Fixpoint</span> <span class="id" title="var">length</span> {<span class="id" title="var">A</span> : <span class="id" title="keyword">Type</span>} (<span class="id" title="var">lst</span> : <span class="id" title="var">list</span> <span class="id" title="var">A</span>) :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">lst</span> <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">nil</span> =&gt; 0<br/>
+&nbsp;&nbsp;| <span class="id" title="var">_</span>::<span class="id" title="var">t</span> =&gt; 1 + <span class="id" title="var">length</span> <span class="id" title="var">t</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Compute</span> <span class="id" title="var">length</span> [1;2].<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">MyLength</span>.<br/>
+
+<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+<a name="lab5"></a><h2 class="section">Options</h2>
+
+
+<div class="paragraph"> </div>
+
+In the Coq standard library, options are defined as follows.
+(Once more we wrap the definition in its own module to avoid
+clashing with the standard library's own definition.)
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Module</span> <span class="id" title="var">MyOption</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Inductive</span> <span class="id" title="var">option</span> (<span class="id" title="var">A</span>:<span class="id" title="keyword">Type</span>) : <span class="id" title="keyword">Type</span> :=<br/>
+&nbsp;&nbsp;| <span class="id" title="var">Some</span> : <span class="id" title="var">A</span> -&gt; <span class="id" title="var">option</span> <span class="id" title="var">A</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">None</span> : <span class="id" title="var">option</span> <span class="id" title="var">A</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">End</span> <span class="id" title="var">MyOption</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+Coq options are essentially the same as OCaml's.  <span class="inlinecode"><span class="id" title="var">Some</span></span> is a function that
+given a value of type <span class="inlinecode"><span class="id" title="var">A</span></span>, constructs an option containing that value.  <span class="inlinecode"><span class="id" title="var">None</span></span>
+is already a value that has type <span class="inlinecode"><span class="id" title="var">option</span></span> <span class="inlinecode"><span class="id" title="var">A</span></span> for any <span class="inlinecode"><span class="id" title="var">A</span></span>.
+
+<div class="paragraph"> </div>
+
+Here is a function <span class="inlinecode"><span class="id" title="var">hd_opt</span></span>.  It returns the head of a list, wrapped in <span class="inlinecode"><span class="id" title="var">Some</span></span>.
+If the list is empty, it returns <span class="inlinecode"><span class="id" title="var">None</span></span>. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Definition</span> <span class="id" title="var">hd_opt</span> {<span class="id" title="var">A</span> : <span class="id" title="keyword">Type</span>} (<span class="id" title="var">lst</span> : <span class="id" title="var">list</span> <span class="id" title="var">A</span>) : <span class="id" title="var">option</span> <span class="id" title="var">A</span> :=<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">match</span> <span class="id" title="var">lst</span>  <span class="id" title="keyword">with</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">nil</span> =&gt; <span class="id" title="var">None</span><br/>
+&nbsp;&nbsp;| <span class="id" title="var">x</span> :: <span class="id" title="var">_</span> =&gt; <span class="id" title="var">Some</span> <span class="id" title="var">x</span><br/>
+&nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Compute</span> <span class="id" title="var">hd_opt</span> [1].<br/>
+
+<br/>
+<span class="id" title="keyword">Compute</span> @<span class="id" title="var">hd_opt</span> <span class="id" title="var">nat</span> [].<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+The first of those example usages returns <span class="inlinecode"><span class="id" title="var">Some</span></span> <span class="inlinecode">1</span> <span class="inlinecode">:</span> <span class="inlinecode"><span class="id" title="var">option</span></span> <span class="inlinecode"><span class="id" title="var">nat</span></span>, and the
+second returns <span class="inlinecode"><span class="id" title="var">None</span></span> <span class="inlinecode">:</span> <span class="inlinecode"><span class="id" title="var">option</span></span> <span class="inlinecode"><span class="id" title="var">nat</span></span>.  In the second, we are forced to explicitly
+provide the type argument, because Coq can't infer from just the empty list what
+kind of option it should be:  should it be <span class="inlinecode"><span class="id" title="var">option</span></span> <span class="inlinecode"><span class="id" title="var">nat</span></span>? <span class="inlinecode"><span class="id" title="var">option</span></span> <span class="inlinecode"><span class="id" title="var">bool</span></span>? or
+something else? 
+<div class="paragraph"> </div>
+
+ Now let's prove something about <span class="inlinecode"><span class="id" title="var">hd_opt</span></span>:  when applied to a list of length
+0, it returns <span class="inlinecode"><span class="id" title="var">None</span></span>. Informally, that holds because there are two possibilities
+of how a list is constructed:
+
+<div class="paragraph"> </div>
+
+<ul class="doclist">
+<li> if the list is <span class="inlinecode"><span class="id" title="var">nil</span></span>, then its length is certainly 0, and evaluation of
+  <span class="inlinecode"><span class="id" title="var">hd_opt</span></span>'s pattern match will choose the branch that returns <span class="inlinecode"><span class="id" title="var">None</span></span>.
+
+<div class="paragraph"> </div>
+
+
+</li>
+<li> if the list is constructed with <span class="inlinecode"><span class="id" title="var">cons</span></span>, then its length is at least 1.  That
+  contradicts the assumption that its length is 0.
+
+</li>
+</ul>
+
+<div class="paragraph"> </div>
+
+The proof below uses exactly that reasoning.
+
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">length0_implies_hdopt_is_none</span> :<br/>
+&nbsp;&nbsp;<span class="id" title="keyword">forall</span> <span class="id" title="var">A</span> : <span class="id" title="keyword">Type</span>, <span class="id" title="keyword">forall</span> <span class="id" title="var">lst</span> : <span class="id" title="var">list</span> <span class="id" title="var">A</span>,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">length</span> <span class="id" title="var">lst</span> = 0 -&gt; <span class="id" title="var">hd_opt</span> <span class="id" title="var">lst</span> = <span class="id" title="var">None</span>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">A</span> <span class="id" title="var">lst</span> <span class="id" title="var">length_lst_is_0</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">lst</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">trivial</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">discriminate</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+The first line of that proof, which uses the <span class="inlinecode"><span class="id" title="tactic">intros</span></span> tactic, introduces
+three assumptions into the proof:  That <span class="inlinecode"><span class="id" title="var">A</span></span> is a type, that <span class="inlinecode"><span class="id" title="var">lst</span></span> has type <span class="inlinecode"><span class="id" title="var">list</span></span>
+<span class="inlinecode"><span class="id" title="var">A</span></span>, and that the length of <span class="inlinecode"><span class="id" title="var">lst</span></span> is 0.  The second line does the case analysis
+on <span class="inlinecode"><span class="id" title="var">lst</span></span>:  is it <span class="inlinecode"><span class="id" title="var">nil</span></span> or <span class="inlinecode"><span class="id" title="var">cons</span></span>?  The next two tactics handle each of those
+cases.
+
+<div class="paragraph"> </div>
+
+<ul class="doclist">
+<li> The first case, where the list is <span class="inlinecode"><span class="id" title="var">nil</span></span>, is handled by <span class="inlinecode"><span class="id" title="tactic">trivial</span></span>, which finds
+  a proof that <span class="inlinecode"><span class="id" title="var">hd_opt</span></span> <span class="inlinecode"><span class="id" title="var">nil</span></span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">None</span></span>.  It succeeds in doing that by first doing
+  some computation, which reduces <span class="inlinecode"><span class="id" title="var">hd_opt</span></span> <span class="inlinecode"><span class="id" title="var">nil</span></span> to <span class="inlinecode"><span class="id" title="var">None</span></span>, then showing that
+  <span class="inlinecode"><span class="id" title="var">None</span></span> <span class="inlinecode">=</span> <span class="inlinecode"><span class="id" title="var">None</span></span> because equality is reflexive.
+
+<div class="paragraph"> </div>
+
+
+</li>
+<li> The second case, where the list is <span class="inlinecode"><span class="id" title="var">cons</span></span>, is handled by <span class="inlinecode"><span class="id" title="tactic">discriminate</span></span>,
+  which finds a contradiction while trying to prove that <span class="inlinecode"><span class="id" title="var">hd_opt</span></span> <span class="inlinecode">(<span class="id" title="var">a</span></span> <span class="inlinecode">::</span> <span class="inlinecode"><span class="id" title="var">lst</span>)</span> <span class="inlinecode">=</span>
+  <span class="inlinecode"><span class="id" title="var">None</span></span>. Of course, that equality is untrue:  <span class="inlinecode"><span class="id" title="var">hd_opt</span></span> <span class="inlinecode">(<span class="id" title="var">a</span></span> <span class="inlinecode">::</span> <span class="inlinecode"><span class="id" title="var">lst</span>)</span> is actually
+  <span class="inlinecode"><span class="id" title="var">Some</span></span> <span class="inlinecode"><span class="id" title="var">a</span></span>. So <span class="inlinecode"><span class="id" title="tactic">discriminate</span></span> looks in the hypotheses of the proof and finds one
+  that claims <span class="inlinecode"><span class="id" title="var">length</span></span> <span class="inlinecode">(<span class="id" title="var">a</span></span> <span class="inlinecode">::</span> <span class="inlinecode"><span class="id" title="var">lst</span>)</span> <span class="inlinecode">=</span> <span class="inlinecode">0</span>.  Of course, that's untrue, because
+  <span class="inlinecode"><span class="id" title="var">length</span></span> <span class="inlinecode">(<span class="id" title="var">a</span></span> <span class="inlinecode">::</span> <span class="inlinecode"><span class="id" title="var">lst</span>)</span> is <span class="inlinecode">1</span> <span class="inlinecode">+</span> <span class="inlinecode"><span class="id" title="var">length</span></span> <span class="inlinecode"><span class="id" title="var">lst</span></span>, which is at least 1, and <span class="inlinecode">1</span> <span class="inlinecode">&lt;&gt;</span> <span class="inlinecode">0</span>.
+  The <span class="inlinecode"><span class="id" title="tactic">discriminate</span></span> tactic detects that contradiction.  You might recall from
+  CS 2800 that from an assumption of <span class="inlinecode"><span class="id" title="var">false</span></span>, you are allowed to conclude
+  anything. That's the reasoning being used here.
+
+</li>
+</ul>
+
+<div class="paragraph"> </div>
+
+When there are a few cases in a proof, as there were (two) in the previous
+proof, sometimes Coq programmers use <i>bullets</i> to make the structure of their
+proofs apparent to readers.  The bullets also help with <i>focusing</i> the
+programmer's attention on the proof state during the process of constructing the
+proof. The bullets in the proof below, written <span class="inlinecode">-</span>, cause all but one subgoal to
+disappear.  After a subgoal has been proved, the proof state reads "There are
+unfocused goals."  The next bullet causes the next unfocused goal to become
+focused.  This is probably best understood by stepping through the following
+proof in Coq and observing what happens to the proof state when each bullet is
+processed. 
+</div>
+<div class="code">
+
+<br/>
+<span class="id" title="keyword">Theorem</span> <span class="id" title="var">length0_implies_hdopt_is_none'</span> :<br/>
+<span class="id" title="keyword">forall</span> <span class="id" title="var">A</span> : <span class="id" title="keyword">Type</span>, <span class="id" title="keyword">forall</span> <span class="id" title="var">lst</span> : <span class="id" title="var">list</span> <span class="id" title="var">A</span>,<br/>
+&nbsp;&nbsp;<span class="id" title="var">length</span> <span class="id" title="var">lst</span> = 0 -&gt; <span class="id" title="var">hd_opt</span> <span class="id" title="var">lst</span> = <span class="id" title="var">None</span>.<br/>
+<span class="id" title="keyword">Proof</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">intros</span> <span class="id" title="var">A</span> <span class="id" title="var">lst</span> <span class="id" title="var">length_lst_is_0</span>.<br/>
+&nbsp;&nbsp;<span class="id" title="tactic">destruct</span> <span class="id" title="var">lst</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;- <span class="id" title="tactic">trivial</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;- <span class="id" title="tactic">discriminate</span>.<br/>
+<span class="id" title="keyword">Qed</span>.<br/>
+
+<br/>
+</div>
+
+<div class="doc">
+The characters <span class="inlinecode">+</span> and <span class="inlinecode">*</span> can also be used as bullets, as can <span class="inlinecode">--</span>, <span class="inlinecode">---</span>,
+etc.
+
+<div class="paragraph"> </div>
+
+
+<div class="paragraph"> </div>
+
+<a name="lab6"></a><h2 class="section">Summary</h2>
+
+
+<div class="paragraph"> </div>
+
+Coq is a functional programming language.  It contains many of the same features
+as OCaml.  In fact, Coq is implemented in OCaml.  Coq is also a proof assistant.
+We can write programs and prove theorems about those programs.  Coq searches for
+those proofs, and we guide its search with tactics.
+
+<div class="paragraph"> </div>
+
+<a name="lab7"></a><h2 class="section">Terms and concepts</h2>
+
+
+<div class="paragraph"> </div>
+
+<ul class="doclist">
+<li> antecedent
+
+</li>
+<li> case analysis
+
+</li>
+<li> consequent
+
+</li>
+<li> constructor
+
+</li>
+<li> definition
+
+</li>
+<li> fixpoint
+
+</li>
+<li> function
+
+</li>
+<li> goal
+
+</li>
+<li> hypothesis
+
+</li>
+<li> implicit argument
+
+</li>
+<li> inductive type
+
+</li>
+<li> proof search
+
+</li>
+<li> proof state
+
+</li>
+<li> reflexivity of equality
+
+</li>
+<li> tactic
+
+</li>
+<li> tactical
+
+</li>
+<li> theorem
+
+</li>
+</ul>
+
+<div class="paragraph"> </div>
+
+<a name="lab8"></a><h2 class="section">Tactics</h2>
+
+
+<div class="paragraph"> </div>
+
+<ul class="doclist">
+<li> <span class="inlinecode"><span class="id" title="tactic">auto</span></span>
+
+</li>
+<li> <span class="inlinecode"><span class="id" title="tactic">destruct</span></span>
+
+</li>
+<li> <span class="inlinecode"><span class="id" title="tactic">discriminate</span></span>
+
+</li>
+<li> <span class="inlinecode"><span class="id" title="tactic">intros</span></span>
+
+</li>
+<li> <span class="inlinecode"><span class="id" title="tactic">simpl</span></span>
+
+</li>
+<li> <span class="inlinecode"><span class="id" title="tactic">trivial</span></span>
+
+</li>
+<li> tacticals: <span class="inlinecode"><span class="id" title="var">all</span></span>, <span class="inlinecode">||</span>, <span class="inlinecode">;</span>, <span class="inlinecode">-</span>, <span class="inlinecode">*</span>, <span class="inlinecode">+</span>
+
+</li>
+</ul>
+
+<div class="paragraph"> </div>
+
+<a name="lab9"></a><h2 class="section">Further reading</h2>
+
+
+<div class="paragraph"> </div>
+
+<ul class="doclist">
+<li> <i>Software Foundations, Volume 1: Logical Foundations</i>.
+  <a href="https://softwarefoundations.cis.upenn.edu/lf-current/Basics.html">
+  Chapter 1: Basics.</a>
+
+<div class="paragraph"> </div>
+
+
+</li>
+<li> <i>Interactive Theorem Proving and Program Development</i>.
+  Chapters 1 through 4. Available
+  <a href="https://newcatalog.library.cornell.edu/catalog/10131206">
+  online from the Cornell library</a>.
+
+</li>
+</ul>
+
+</div>
+<div class="code">
+</div>
+</div>
+
+<div id="footer">
+<hr/><a href="index.html">Index</a><hr/>This page has been generated by <a href="http://coq.inria.fr/">coqdoc</a>
+</div>
+
+</div>
+
+</body>
+</html>

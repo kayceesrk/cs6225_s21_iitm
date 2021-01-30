@@ -1,0 +1,11 @@
+-R ../frap Frap
+FunctionalProgramming.v
+Logic.v
+Induction.v
+BasicSyntax.v
+Interpreters.v
+LogicProgramming.v
+TransitionSystems.v
+OperationalSemantics.v
+LambdaCalculus.v
+HoareLogic.v
