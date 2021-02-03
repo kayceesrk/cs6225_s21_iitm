@@ -152,6 +152,8 @@ Definition is_empty' {A : Type} (lst : list A) :=
 
 Compute is_empty' [1].
 
+Check is_empty'.
+
 Compute @is_empty' nat [1]. (* provide implcit argument explicitly! *)
 
 
@@ -199,7 +201,7 @@ Theorem length0_implies_hdopt_is_none :
 Proof.
   intros A lst length_lst_is_0.
   destruct lst.
-    trivial. (* trivial does simplification *)
+    simpl. trivial. (* trivial does simplification *)
     simpl in length_lst_is_0. discriminate.
 Qed.
 

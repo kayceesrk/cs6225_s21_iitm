@@ -88,6 +88,10 @@ Check 1 + 1 = 3.
 
 Check Prop.
 
+Check true.
+
+Check True.
+
 (**
 The type of [Prop] is also [Type].
 *)

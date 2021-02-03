@@ -1,7 +1,7 @@
 (**
  * PSet 1: Functional Programming in Coq
 
-  This lab is designed as a file that you should download and complete in a Coq IDE.
+  This assignment is designed as a file that you should download and complete in a Coq IDE.
   Before doing that, you need to install Coq.  The installation instructions
   are on the course website.
 *)
