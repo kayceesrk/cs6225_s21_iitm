@@ -210,7 +210,7 @@ Proof.
   intros A lst length_lst_is_0.
   destruct lst.
     - trivial.
-    - discriminate.
+    - discriminate. (* skipped explicit simplification *)
 Qed.
 
 (** The characters [+] and [*] can also be used as bullets, as can [--], [---],

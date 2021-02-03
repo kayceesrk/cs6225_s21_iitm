@@ -58,6 +58,9 @@ Proofs](https://blog.sigplan.org/2019/09/12/program-verification-has-it-lost-its
 
 Location: ~~CS26~~ [Google Meet](http://meet.google.com/tmf-zuca-abs)
 
+Videos: [Google
+Drive](https://drive.google.com/drive/folders/1SgJ_qaENAyKvoe8Fe8DAQFhY2bncrxrd?usp=sharing)  
+
 Time: 
   * M 1100 - 1150
   * Tu 1000 - 1050
