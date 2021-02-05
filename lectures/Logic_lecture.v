@@ -467,6 +467,7 @@ Theorem or_distr_and : forall P Q R,
 Proof.
   intros P Q R PorQR.
   destruct PorQR.
+  
   - split.
     + left. assumption.
     + left. assumption.
@@ -532,7 +533,7 @@ Print False_ind.
 
 Definition explosion' : forall (P:Prop), False -> P := 
   fun (P : Prop) (f (* no valid values for [f] *) : False) => 
-    match f with 
+    match f with
     end.
 
 (** We can never prove [P -> P /\ False], because there is no way to construct the evidence for the right side. *)
@@ -565,12 +566,6 @@ know exactly the program expression you want to write to provide evidence for
 the goal you are trying to prove.  In this case, we know that [I] always
 provides evidence for [true].  Instead of [exact] we could also have used
 [trivial], which is capable of proving trivial propositions like [True]. *)
-
-Theorem p_imp_p_or_true : forall P:Prop, P -> P \/ True.
-Proof.
-  intros P P_holds. left. assumption.
-Qed.
-
 
 (**********************************************************************)
 

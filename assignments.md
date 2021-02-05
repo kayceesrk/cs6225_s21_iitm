@@ -11,6 +11,10 @@ under `assignments/pset*`.
 All assignments should be submitted through the [course
 moodle](https://courses.iitm.ac.in/course/view.php?id=5339). 
 
+| Problem Set | Released | Due Date | Topic |
+|------------:|----------|----------|-------|
+| 1 | 03/02/2021 | 10/02/2021 | Functional Programming in Coq |
+
 <br/>
 
 ## Assignment late penalties
