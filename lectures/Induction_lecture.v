@@ -28,7 +28,7 @@ Theorem app_nil : forall (A:Type) (lst : list A),
 Proof.
   intros A lst. 
   simpl. (* cannot simplify *)
-  destruct lst.
+  destruct lst. (* case analysis *)
   - trivial.
   - simpl.  (* can't proceed *)
 Abort.
@@ -61,8 +61,8 @@ Proof.  By induction on lst.
 
 For the base case, 
 
-Case:  lst = nil
-Show:  P(nil)
+Case:  lst = []
+Show:  P([])
 
 For the inductive case, 
 
@@ -76,24 +76,24 @@ QED.
 Here's how that proof could be written:
 
 <<
-Theorem:  for all lists lst, lst ++ nil = lst.
+Theorem:  for all lists lst, lst ++ [] = lst.
 
 Proof:  by induction on lst.
-P(lst) = lst ++ nil = lst.
+P(lst) = lst ++ [] = lst.
 
-Case:  lst = nil
+Case:  lst = []
 Show:
-  P(nil)
-= nil ++ nil = nil
-= nil = nil
+  P([])
+= [] ++ [] = []
+= [] = []
 
 Case:  lst = h::t
-IH: P(t) = (t ++ nil = t)
+IH: P(t) = (t ++ [] = t)
 Show
   P(h::t)
-= (h::t) ++ nil = h::t
-= h::(t ++ nil) = h::t     // by definition of ++
-= h::t = h::t              // by IH
+= (h::t) ++ [] = h::t     // by definition of P
+= h::(t ++ []) = h::t     // by definition of ++
+= h::t = h::t             // by IH
 
 QED
 >>
@@ -112,13 +112,17 @@ Proof.
   trivial.
 Qed.
 
+Print app_nil.
+
+Check list_ind.
+
 Theorem app_assoc : forall (A:Type) (l1 l2 l3 : list A),
   l1 ++ (l2 ++ l3) = (l1 ++ l2) ++ l3.
 Proof.
   intros A l1 l2 l3.
   induction l1.
   - simpl. trivial.
-  - simpl. rewrite -> IHl1. trivial.
+  - simpl. rewrite <- IHl1. trivial.
 Qed.
 
 
@@ -150,7 +154,7 @@ Qed.
 
 ** Induction on natural numbers
 
-Prove [0 + 1 + ... + n = n * (n+1) / 2].  
+Prove [0 + 1 + ... + n = n * (n+1) / 2].
 
 The structure of a proof by induction on the naturals is as follows:
 
@@ -391,7 +395,7 @@ Abort.
 
 (** [simpl] is too agressive! Let's define a helper _lemma. *)
 
-(* + Natural numbers with [+] and [*] for a _ring_
+(* + Natural numbers with [+] and [*] form a _ring_
      - https://en.wikipedia.org/wiki/Ring_(mathematics)
    + Coq has good support for proofs on rings
 *)
@@ -451,7 +455,7 @@ Nat.div_mul: forall a b : nat, b <> 0 -> a * b / b = a
 >>
 That would let us cancel a term from the numerator and denominator, but it
 requires the left-hand side of the equality to be of the form [a * b / b],
-whereas we have [c * a / b].  The problem is that the two sides of the
+whereas we have [b * a / b].  The problem is that the two sides of the
 multiplication are reversed.  No worries; multiplication is commutative, and
 there is a library theorem that proves it. Again, we could find that theorem: *)
 
@@ -521,6 +525,14 @@ Fixpoint fact_tail_rec' (n : nat) (acc: nat) : nat :=
 
 Definition fact_tail_rec (n : nat) := fact_tail_rec' n 1.
 
+Theorem fact_tail_rec_ok' : forall n, fact n = fact_tail_rec n.
+Proof.
+  unfold fact_tail_rec.
+  induction n.
+  - simpl. trivial.
+  - simpl. rewrite IHn.
+Abort.
+
 (**
 
 We need to prove an intermediate lemma about [fact_tail_rec'] for the proof of our main theorem to go through.
@@ -533,13 +545,13 @@ Proof.
   intro n.
   induction n.
   - intro acc. simpl. ring.
-  - intro acc. simpl (fact_tail_rec' (S n) 1). rewrite IHn. simpl. rewrite IHn. ring.
+  - intro acc. simpl. 
+    rewrite IHn. 
+    rewrite (IHn (S (n + 0))). (* to get the cirrect term to reduce *)
+    ring.
 Qed.
 
 (**
-
-In the above proof, the [simpl] tactic is applied with a specific pattern only on which simplification occurs. This is done so that the subsequent [rewrite] tactic does not pick the wrong term to rewrite. Try changing [simpl (fact_tail_rec' (S n) 1)] to [simpl] and make the proof go through.
-
 
 Now we are ready to prove our main theorem. The proof involves induction on the input and an application of the lemma [fact_tail_rec_lem] that we had proved.
 

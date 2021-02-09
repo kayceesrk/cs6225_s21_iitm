@@ -256,7 +256,7 @@ Theorem syllogism' : forall P Q : Prop,
   (P -> Q) -> P -> Q.
 Proof.
   intros.
-  apply H in H0. 
+  apply H in H0.
   (* Can also [apply] to assumptions to do _forwards reasoning *)
   assumption.
 Qed.
@@ -265,8 +265,8 @@ Qed.
 Theorem imp_trans : forall P Q R : Prop,
   (P -> Q) -> (Q -> R) -> (P -> R).
 Proof.
-  intros P Q R evPimpQ evQimpR.
-  intros evP.
+  intros P Q R. intros evPimpQ. intros evQimpR. intros.
+
   apply evQimpR.
   apply evPimpQ.
   assumption.
@@ -289,6 +289,12 @@ Equivalent to the OCaml function
 
 let composition f g v = g (f v)
 
+let succ x = x + 1
+
+let succ2 = succ o succ
+
+let (|>) = v |> f |> g
+
 (**********************************************************************)
 
 ** Conjunction
@@ -306,7 +312,7 @@ Theorem and_fst : forall P Q, P /\ Q -> P.
 
 Proof.
     intros P Q PandQ.
-    destruct PandQ as [P_holds Q_holds]. 
+    destruct PandQ as [P_holds Q_holds].
     assumption.
 Qed.
 
@@ -334,6 +340,12 @@ Locate "/\".
 
 Print and.
 
+(* 
+
+type ('a,'b) and = Conj : 'a * 'b -> ('a,'b) and 
+
+*)
+
 (* Takeaway: In order to construct a proof for [P /\ Q], you need [P] and [Q] and use the [conj] constructor to put them together *)
 
 Theorem and_snd : forall P Q : Prop,
@@ -353,7 +365,7 @@ Theorem and_ex : 42=42 /\ 43=43.
 (** Why does that hold, intuitively?  Because equality is reflexive, regardless
 of how many times we connect that fact with [/\]. *)
 
-Proof. 
+Proof.
   split. (* new tactic *)
   trivial. trivial.
 Qed.
@@ -421,6 +433,8 @@ We need to find out more about [or_introl].
 Locate "\/".
 (** "\/" is infix notation for [or A B] *)
 
+Print or.
+
 Print or_introl.
 (* [or_introl] is one of two constructors of the type [or]:
 <<
@@ -482,8 +496,8 @@ Qed.
 Theorem or_distr_and_shorter : forall P Q R, 
   P \/ (Q /\ R) -> (P \/ Q) /\ (P \/ R).
 Proof.
-  intros P Q R PorQR.
-  destruct PorQR.
+  intros.
+  destruct H.
   - split; left; assumption.
   - destruct H.
     split; right; assumption.
@@ -516,10 +530,7 @@ Proof.
     contradiction. (* new tactic *)
 Qed.
 
-(** The second line of the proof uses a new tactic, [contradiction].  This
-tactic looks for any contradictions or assumptions of [False], and uses those to
-conclude the proof.  In this case, it immediately finds [False] as an assumption
-named [false_holds].*)
+(** The second line of the proof uses a new tactic, [contradiction].  This tactic looks for any contradictions or assumptions of [False], and uses those to conclude the proof.  In this case, it immediately finds [False] as an assumption named [false_holds].*)
 
 Print explosion.
 Print False_ind.
@@ -600,7 +611,7 @@ Theorem notTrue: ~True -> False.
 Proof.
   unfold not. 
   intros t_imp_f. 
-  apply t_imp_f. 
+  apply t_imp_f.
   exact I.
 Qed.
 
@@ -627,6 +638,7 @@ Proof.
     unfold not.
     intros. 
     destruct H.
+    apply H0 in H.
     contradiction. (* detects contradiction *)
 Qed.
 
@@ -638,9 +650,7 @@ Qed.
 Theorem deMorgan : forall P Q : Prop,
   ~(P \/ Q) -> ~P /\ ~Q.
 
-(** Intuition: if evidence for [P] or [Q] would lead to an explosion (i.e.,
-   [False]), then evidence for [P] would lead to an explosion, and evidence 
-   for [Q] would also lead to an explosion. *)
+(** Intuition: if evidence for [P] or [Q] would lead to an explosion (i.e., [False]), then evidence for [P] would lead to an explosion, and evidence for [Q] would also lead to an explosion. *)
    
 Proof.
   unfold not.
@@ -674,7 +684,9 @@ Abort.
 Theorem excluded_middle : forall P, P \/ ~P.
 Proof.
   intros P.
-  left.
+  right.
+  unfold not.
+  intros.
 Abort.
 
 (* Coq uses constructive logic since the act of proving programs is by building evidence bottom up. No bottom up evidence for [P \/ ~P]. *) 
@@ -703,18 +715,19 @@ End LetsDoClassicalReasoning.
 (** Equality and implication *)
 
 Locate "=".
-Print eq.
-(* Takes a type [A] and argument [x], returns a function of type [A -> Prop]. *)
+Check @eq. 
+(* Builds a proposition that asserts the equality of the two arguments*)
 
 Definition eq42 := @eq nat 42.
 Check eq42.
-Check (eq42 42).
-Check (eq42 43).
+Check (eq42 42). (* 42 = 42 *)
+Check (eq42 43). (* 42 = 43 *)
 
 (* There's only one way to construct a value of type [eq],
-     that's with the [eq_refl] constructor. *)
-
+   that's with the [eq_refl] constructor. *)
+Print eq.
 Check @eq_refl.
+
 Check @eq_refl nat 42.
 (* 
   + [@eq_refl] only takes just a single argument of type [nat]
@@ -724,8 +737,14 @@ Check @eq_refl nat 42.
 
 Theorem direct_eq : 42 = 42.
 Proof.
-  exact (eq_refl 42). 
+  exact (eq_refl 42).
 Qed.
+
+
+Theorem direct_eq2 : 42 = 43.
+Proof.
+  (* No way to construct evidence for [42 = 43] *)
+Abort.
 
 (** Implication too is defined. *)
 
@@ -750,6 +769,5 @@ Definition pnqiq' : forall P Q, forall (_: P /\ Q), Q := pnqiq.
 (**
 
 + Only truly primitive pieces are [Inductive] definitions and [forall] types. 
-   + Everything else --- equality, implication, conjunction, disjunction, true, false,
-negation --- can all be expressed in terms of those two primitives.
+   + Everything else --- equality, implication, conjunction, disjunction, True, False, negation --- can all be expressed in terms of those two primitives.
 *)
