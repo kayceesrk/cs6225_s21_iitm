@@ -7,3 +7,5 @@ _site
 .*.aux
 .*.d
 \#*
+*.vos
+*.vok

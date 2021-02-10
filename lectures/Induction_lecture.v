@@ -545,9 +545,9 @@ Proof.
   intro n.
   induction n.
   - intro acc. simpl. ring.
-  - intro acc. simpl. 
-    rewrite IHn. 
-    rewrite (IHn (S (n + 0))). (* to get the cirrect term to reduce *)
+  - intro acc. simpl.
+    rewrite (IHn (acc * S n)). (* to get the correct term to reduce *)
+    rewrite (IHn (S (n + 0))).
     ring.
 Qed.
 
@@ -674,59 +674,5 @@ software to control the flight dynamics of a space shuttle, maybe we
 would.  The Coq standard library does contain a module 31-bit
 integers and operators on them, which we could use if we wanted to
 precisely model what would happen on a particular architecture.
-
-*)
-
-(**
-
-(**********************************************************************)
-
-** Summary
-
-Coq excels as a proof assistant when it comes to proof by induction.  Whenever
-we define an inductive type, Coq generates an induction principle for us
-automatically.  That principle is really a recursive program that knows how to
-assemble evidence for a proposition, given the constructors of the inductive
-type.  The [induction] tactic manages the proof for us, automatically figuring
-out what the base case and the inductive case, and automatically generating the
-inductive hypothesis.
-
-** Terms and concepts
-
-- append
-- base case
-- field
-- [fix]
-- [Fixpoint]
-- induction
-- induction principle
-- inductive case
-- inductive hypothesis
-- lemma
-- Peano natural numbers
-- [Prop] vs [bool]
-- ring
-- searching for library theorems
-- semi-ring
-- syntactically smaller restriction on recursive calls
-
-** Tactics
-
-- [field]
-- [induction]
-- [rewrite]
-- [ring]
-- tacticals: [try]
-
-** Further reading
-
-- _Software Foundations, Volume 1: Logical Foundations_.
-  #<a href="https://softwarefoundations.cis.upenn.edu/lf-current/toc.html">
-  Chapter 2 through 4: Induction, Lists, Poly</a>#.
-
-- _Interactive Theorem Proving and Program Development_.
-  Chapters 6 through 10. Available
-  #<a href="https://newcatalog.library.cornell.edu/catalog/10131206">
-  online from the Cornell library</a>#.
 
 *)
