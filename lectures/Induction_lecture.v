@@ -304,6 +304,8 @@ Fixpoint sum_to (n:nat) : nat :=
   end.
 
 
+Print nat.
+
 
 
 
@@ -376,7 +378,7 @@ Theorem sum_sq : forall n : nat,
 Proof.
   intros n.
   induction n.
-  - trivial.
+  - simpl. trivial.
   - simpl. rewrite -> IHn.
 Abort.
 
@@ -393,7 +395,7 @@ Proof.
   - simpl.
 Abort.
 
-(** [simpl] is too agressive! Let's define a helper _lemma. *)
+(** [simpl] is too agressive! Let's define a helper _lemma_. *)
 
 (* + Natural numbers with [+] and [*] form a _ring_
      - https://en.wikipedia.org/wiki/Ring_(mathematics)
@@ -415,8 +417,8 @@ Proof.
   intros n.
   induction n.
   - trivial.
-  - rewrite -> sum_helper.
-    rewrite -> IHn.
+  - rewrite sum_helper.
+    rewrite IHn.
     ring.
 Qed.
 
@@ -542,7 +544,7 @@ We need to prove an intermediate lemma about [fact_tail_rec'] for the proof of o
 Lemma fact_tail_rec_lem : forall n acc,
   fact_tail_rec' n acc = acc * fact_tail_rec' n 1.
 Proof.
-  intro n.
+  intros n.
   induction n.
   - intro acc. simpl. ring.
   - intro acc. simpl.
