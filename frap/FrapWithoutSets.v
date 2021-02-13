@@ -1,4 +1,4 @@
-Require Import Eqdep String Arith Omega Program Sets Relations Map Var Invariant Bool ModelCheck.
+Require Import Eqdep String NArith Arith Lia Program Sets Relations Map Var Invariant Bool ModelCheck.
 Export Ascii String Arith Sets Relations Map Var Invariant Bool ModelCheck.
 Require Import List.
 Export List ListNotations.
@@ -98,7 +98,25 @@ Ltac instantiate_obviouses :=
          | [ H : _ |- _ ] => instantiate_obvious H
          end.
 
-Ltac induct e := (inductN e || dependent induction e); instantiate_obviouses.
+(** * Interlude: special notations and induction principle for [N] *)
+
+(* Note: recurse is an identifier, but we will always use the name "recurse" by convention *)
+(*Declare Scope N_recursion_scope.*)
+Notation "recurse 'by' 'cases' | 0 => A | n + 1 => B 'end'" :=
+  (N.recursion A (fun n recurse => B))
+  (at level 11, A at level 200, n at level 0, B at level 200,
+   format "'[hv' recurse  'by'  'cases' '//' '|'  0  =>  A '//' '|'  n  +  1  =>  B '//' 'end' ']'")
+: N_recursion_scope.
+
+Open Scope N_recursion_scope.
+
+Lemma indN: forall (P: N -> Prop),
+    P 0%N ->                                 (* base case to prove *)
+    (forall n: N, P n -> P (n + 1)%N) ->     (* inductive case to prove *)
+    forall n, P n.                           (* conclusion to enjoy *)
+Proof. setoid_rewrite N.add_1_r. exact N.peano_ind. Qed.
+
+Ltac induct e := (induction e using indN || inductN e || dependent induction e); instantiate_obviouses.
 
 Ltac invert' H := inversion H; clear H; subst.
 
@@ -177,8 +195,8 @@ Ltac doSubtract :=
 Ltac simpl_maps :=
   repeat match goal with
          | [ |- context[add ?m ?k1 ?v $? ?k2] ] =>
-           (rewrite (@lookup_add_ne _ _ m k1 k2 v) by (congruence || omega))
-           || (rewrite (@lookup_add_eq _ _ m k1 k2 v) by (congruence || omega))
+           (rewrite (@lookup_add_ne _ _ m k1 k2 v) by (congruence || lia))
+           || (rewrite (@lookup_add_eq _ _ m k1 k2 v) by (congruence || lia))
          end.
 
 Ltac simplify := repeat (unifyTails; pose proof I);
@@ -203,12 +221,15 @@ Ltac linear_arithmetic := intros;
            | [ _ : context[min ?a ?b] |- _ ] =>
              let Heq := fresh "Heq" in destruct (Min.min_spec a b) as [[? Heq] | [? Heq]];
                rewrite Heq in *; clear Heq
-           end; omega.
+           end; lia.
 
 Ltac equality := intuition congruence.
 
 Ltac cases E :=
-  ((is_var E; destruct E)
+  ((repeat match type of E with
+           | _ \/ _ => destruct E as [E | E]
+           end)
+   || (is_var E; destruct E)
    || match type of E with
       | {_} + {_} => destruct E
       | _ => let Heq := fresh "Heq" in destruct E eqn:Heq
@@ -297,22 +318,8 @@ Ltac closure :=
   repeat (apply oneStepClosure_empty
           || (apply oneStepClosure_split; [ model_check_invert; try equality; solve [ singletoner ] | ])).
 
-Ltac model_check_done :=
-  apply MscDone; eapply oneStepClosure_solve; [ closure | simplify; solve [ sets ] ].
-
-Ltac model_check_step0 :=
-  eapply MscStep; [ closure | simplify ].
-
-Ltac model_check_step :=
-  match goal with
-  | [ |- multiStepClosure _ ?inv1 _ _ ] =>
-    model_check_step0;
-    match goal with
-    | [ |- multiStepClosure _ ?inv2 _ _ ] =>
-      (assert (inv1 = inv2) by compare_sets; fail 3)
-      || idtac
-    end
-  end.
+Ltac model_check_done := apply MscDone.
+Ltac model_check_step := eapply MscStep; [ closure | simplify ].
 
 Ltac model_check_steps1 := model_check_step || model_check_done.
 Ltac model_check_steps := repeat model_check_steps1.
@@ -332,9 +339,9 @@ Inductive ordering (n m : nat) :=
 | Eq (_ : n = m)
 | Gt (_ : n > m).
 
-Local Hint Constructors ordering.
-Local Hint Extern 1 (_ < _) => omega.
-Local Hint Extern 1 (_ > _) => omega.
+Local Hint Constructors ordering : core.
+Local Hint Extern 1 (_ < _) => lia : core.
+Local Hint Extern 1 (_ > _) => lia : core.
 
 Theorem totally_ordered : forall n m, ordering n m.
 Proof.
@@ -406,3 +413,44 @@ Ltac dep_cases E :=
       try match goal with
             | [ H : _ = E |- _ ] => try rewrite <- H in *; clear H
           end.
+
+(** * More with [N] *)
+
+Lemma recursion_step: forall {A: Type} (a: A) (f: N -> A -> A) (n: N),
+    N.recursion a f (n + 1)%N = f n (N.recursion a f n).
+Proof.
+  intros until f. setoid_rewrite N.add_1_r.
+  eapply N.recursion_succ; cbv; intuition congruence.
+Qed.
+
+Ltac head f :=
+  match f with
+  | ?g _ => head g
+  | _ => constr:(f)
+  end.
+
+(* If a function f is defined as
+
+  recurse by cases
+  | 0 => base
+  | k + 1 => step recurse k
+  end.
+
+  and we have an occurrence of (f (k + 1)) in our goal, we can use
+  "unfold_recurse f k" to replace (f (k + 1)) by (step (f k) k),
+  ie it allows us to unfold one recursive step. *)
+Ltac unfold_recurse f k :=
+  let h := head f in
+  let rhs := eval unfold h in f in
+  lazymatch rhs with
+  | N.recursion ?base ?step =>
+    let g := eval cbv beta in (step k (f k)) in
+    rewrite (recursion_step base step k : f (k + 1)%N = g) in *
+  | _ => let expected := open_constr:(N.recursion _ _) in
+         fail "The provided term" f "expands to" rhs "which is not of the expected form" expected
+  end.
+
+(* This will make "simplify" a bit less nice in some cases (but these are easily worked around using
+   linear_arithmetic). *)
+Arguments N.mul: simpl never.
+Arguments N.add: simpl never.

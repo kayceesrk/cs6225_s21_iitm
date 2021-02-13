@@ -91,6 +91,7 @@ Module ArithWithConstants.
     end.
 
   Compute commuter ex1.
+  Print ex2.
   Compute commuter ex2.
 
   (* [commuter] has all the appropriate interactions with other functions (and itself). *)
@@ -166,6 +167,7 @@ Module ArithWithVariables.
   | Var (x : var) (* <-- this is the new constructor! *)
   | Plus (e1 e2 : arith)
   | Times (e1 e2 : arith).
+
 
   Example ex1 := Const 42.
   Example ex2 := Plus (Const 1) (Times (Var "x") (Const 3)).
@@ -257,7 +259,10 @@ Module ArithWithVariables.
 
 
 
-
+Check arith.
+Check Set.
+Check Prop.
+Check Type. 
 
 
 
@@ -276,7 +281,8 @@ Module ArithWithVariables.
 
   (* An intuitive property about how much [substitute] might increase depth. *)
   Theorem substitute_depth : forall replaceThis withThis inThis,
-    depth (substitute inThis replaceThis withThis) <= depth inThis + depth withThis.
+    depth (substitute inThis replaceThis withThis) <= 
+    depth inThis + depth withThis.
   Proof.
     induct inThis.
 
@@ -285,9 +291,14 @@ Module ArithWithVariables.
 
     simplify.
     cases (x ==v replaceThis).
-    (* [cases e]: break the proof into one case for each constructor that might have
-     *   been used to build the value of expression [e].  In the special case where
-     *   [e] essentially has a Boolean type, we consider whether [e] is true or false. *)
+    (* [cases e]: break the proof into one case for each 
+     * constructor that might have been used to build the 
+     * value of expression [e].  In the special case where
+     * [e] essentially has a Boolean type, we consider 
+     * whether [e] is true or false. 
+     *
+     * [cases] is like [destruct] but more powerful
+     *)
     linear_arithmetic.
     
     simplify.
@@ -307,7 +318,7 @@ Module ArithWithVariables.
     induct inThis.
 
     simplify.
-    destruct withThis; simplify; linear_arithmetic.
+    cases withThis; simplify; linear_arithmetic.
 
     simplify.
     cases (x ==v replaceThis).
@@ -316,7 +327,7 @@ Module ArithWithVariables.
      *   [e] essentially has a Boolean type, we consider whether [e] is true or false. *)
     linear_arithmetic.
     simplify.
-    destruct withThis; simplify; try linear_arithmetic.
+    cases withThis; simplify; linear_arithmetic.
 
     simplify.
     linear_arithmetic.

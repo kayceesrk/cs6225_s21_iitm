@@ -1,4 +1,5 @@
 -R . Frap
+-arg -w -arg -undeclared-scope
 Map.v
 Var.v
 Sets.v
@@ -9,3 +10,4 @@ Imp.v
 AbstractInterpret.v
 FrapWithoutSets.v
 Frap.v
+SepCancel.v

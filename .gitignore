@@ -9,3 +9,4 @@ _site
 \#*
 *.vos
 *.vok
+*.cache
