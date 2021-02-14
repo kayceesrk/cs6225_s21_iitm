@@ -336,6 +336,44 @@ Check Type.
     linear_arithmetic.
   Qed.
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   (* Let's get fancier about automation, using [match goal] to pattern-match the goal
    * and decide what to do next!
    * The [|-] syntax separates hypotheses and conclusion in a goal.
@@ -344,9 +382,11 @@ Check Type.
     depth (substitute inThis replaceThis withThis) <= depth inThis + depth withThis.
   Proof.
     induct inThis; simplify;
+    (* [try] tactical attempts to apply a tactic, and ignores failures *)
     try match goal with
         | [ |- context[if ?a ==v ?b then _ else _] ] => cases (a ==v b); simplify
-        end; linear_arithmetic.
+        end;
+    linear_arithmetic.
   Qed.
 
   (* A silly self-substitution has no effect. *)
@@ -433,6 +473,9 @@ Check Type.
       | _, _ => Times e1' e2'
       end
     end.
+    
+  Example ex3 := Times (Plus (Const 0) (Var "x")) (Const 1).
+  Compute constantFold ex3.
 
   (* This is supposed to be an *optimization*, so it had better not *increase*
    * the size of an expression!
@@ -442,7 +485,21 @@ Check Type.
    * Such a pattern matches *any* [match] in a goal, over any type! *)
   Theorem size_constantFold : forall e, size (constantFold e) <= size e.
   Proof.
+    (*
+    induct e.
+    - simplify. linear_arithmetic.
+    - simplify. linear_arithmetic.
+    - simplify. cases (constantFold e1). cases n. cases (constantFold e2). 
+      + simplify. linear_arithmetic. 
+      + simplify. linear_arithmetic. 
+      + simplify. linear_arithmetic. 
+      + simplify. linear_arithmetic.
+      + simplify. cases (constantFold e2).
+        * simplify. linear_arithmetic.
+        * simplify. linear_arithmetic. 
+    *)
     induct e; simplify;
+    (* [repeat] tactical loop repeats a tactic until it fails. *)
     repeat match goal with
            | [ |- context[match ?E with _ => _ end] ] => cases E; simplify
            end; linear_arithmetic.
@@ -456,7 +513,7 @@ Check Type.
            | [ |- context[match ?E with _ => _ end] ] => cases E; simplify
            | [ H : ?f _ = ?f _ |- _ ] => invert H
            | [ |- ?f _ = ?f _ ] => f_equal
-           end; equality || linear_arithmetic || ring.
+           end; equality || linear_arithmetic.
     (* [f_equal]: when the goal is an equality between two applications of
      *   the same function, switch to proving that the function arguments are
      *   pairwise equal.
@@ -465,160 +522,9 @@ Check Type.
      *   description for now; we'll learn much more about the logic shortly!
      *   Here, what matters is that, when the hypothesis is an equality between
      *   two applications of a constructor of an inductive type, we learn that
-     *   the arguments to the constructor must be pairwise equal.
-     * [ring]: prove goals that are equalities over some registered ring or
-     *   semiring, in the sense of algebra, where the goal follows solely from
-     *   the axioms of that algebraic structure. *)
+     *   the arguments to the constructor must be pairwise equal. *)
   Qed.
 
-  (* To define a further transformation, we first write a roundabout way of
-   * testing whether an expression is a constant.
-   * This detour happens to be useful to avoid overhead in concert with
-   * pattern matching, since Coq internally elaborates wildcard [_] patterns
-   * into separate cases for all constructors not considered beforehand.
-   * That expansion can create serious code blow-ups, leading to serious
-   * proof blow-ups! *)
-  Definition isConst (e : arith) : option nat :=
-    match e with
-    | Const n => Some n
-    | _ => None
-    end.
-
-  (* Our next target is a function that finds multiplications by constants
-   * and pushes the multiplications to the leaves of syntax trees,
-   * ideally finding constants, which can be replaced by larger constants,
-   * not affecting the meanings of expressions.
-   * This helper function takes a coefficient [multiplyBy] that should be
-   * applied to an expression. *)
-  Fixpoint pushMultiplicationInside' (multiplyBy : nat) (e : arith) : arith :=
-    match e with
-    | Const n => Const (multiplyBy * n)
-    | Var _ => Times (Const multiplyBy) e
-    | Plus e1 e2 => Plus (pushMultiplicationInside' multiplyBy e1)
-                         (pushMultiplicationInside' multiplyBy e2)
-    | Times e1 e2 =>
-      match isConst e1 with
-      | Some k => pushMultiplicationInside' (k * multiplyBy) e2
-      | None => Times (pushMultiplicationInside' multiplyBy e1) e2
-      end
-    end.
-
-  (* The overall transformation just fixes the initial coefficient as [1]. *)
-  Definition pushMultiplicationInside (e : arith) : arith :=
-    pushMultiplicationInside' 1 e.
-
-  (* Let's prove this boring arithmetic property, so that we may use it below. *)
-  Lemma n_times_0 : forall n, n * 0 = 0.
-  Proof.
-    linear_arithmetic.
-  Qed.
-
-  (* A fun fact about pushing multiplication inside:
-   * the coefficient has no effect on depth!
-   * Let's start by showing any coefficient is equivalent to coefficient 0. *)
-  Lemma depth_pushMultiplicationInside'_irrelevance0 : forall e multiplyBy,
-    depth (pushMultiplicationInside' multiplyBy e)
-    = depth (pushMultiplicationInside' 0 e).
-  Proof.
-    induct e; simplify.
-
-    linear_arithmetic.
-
-    linear_arithmetic.
-
-    rewrite IHe1.
-    (* [rewrite H]: where [H] is a hypothesis or previously proved theorem,
-     *  establishing [forall x1 .. xN, e1 = e2], find a subterm of the goal
-     *  that equals [e1], given the right choices of [xi] values, and replace
-     *  that subterm with [e2]. *)
-    rewrite IHe2.
-    linear_arithmetic.
-
-    cases (isConst e1); simplify.
-
-    rewrite IHe2.
-    rewrite n_times_0.
-    linear_arithmetic.
-
-    rewrite IHe1.
-    linear_arithmetic.
-  Qed.
-
-  (* It can be remarkably hard to get Coq's automation to be dumb enough to
-   * help us demonstrate all of the primitive tactics. ;-)
-   * In particular, we can redo the proof in an automated way, without the
-   * explicit rewrites. *)
-  Lemma depth_pushMultiplicationInside'_irrelevance0_snazzy : forall e multiplyBy,
-    depth (pushMultiplicationInside' multiplyBy e)
-    = depth (pushMultiplicationInside' 0 e).
-  Proof.
-    induct e; simplify;
-    try match goal with
-        | [ |- context[match ?E with _ => _ end] ] => cases E; simplify
-        end; equality.
-  Qed.
-
-  (* Now the general corollary about irrelevance of coefficients for depth. *)
-  Lemma depth_pushMultiplicationInside'_irrelevance : forall e multiplyBy1 multiplyBy2,
-    depth (pushMultiplicationInside' multiplyBy1 e)
-    = depth (pushMultiplicationInside' multiplyBy2 e).
-  Proof.
-    simplify.
-    transitivity (depth (pushMultiplicationInside' 0 e)).
-    (* [transitivity X]: when proving [Y = Z], switch to proving [Y = X]
-     * and [X = Z]. *)
-    apply depth_pushMultiplicationInside'_irrelevance0.
-    (* [apply H]: for [H] a hypothesis or previously proved theorem,
-     *   establishing some fact that matches the structure of the current
-     *   conclusion, switch to proving [H]'s own hypotheses.
-     *   This is *backwards reasoning* via a known fact. *)
-    symmetry.
-    (* [symmetry]: when proving [X = Y], switch to proving [Y = X]. *)
-    apply depth_pushMultiplicationInside'_irrelevance0.
-  Qed.
-
-  (* Let's prove that pushing-inside has only a small effect on depth,
-   * considering for now only coefficient 0. *)
-  Lemma depth_pushMultiplicationInside' : forall e,
-    depth (pushMultiplicationInside' 0 e) <= S (depth e).
-  Proof.
-    induct e; simplify.
-
-    linear_arithmetic.
-
-    linear_arithmetic.
-
-    linear_arithmetic.
-
-    cases (isConst e1); simplify.
-
-    rewrite n_times_0.
-    linear_arithmetic.
-
-    linear_arithmetic.
-  Qed.
-
-  Hint Rewrite n_times_0.
-  (* Registering rewrite hints will get [simplify] to apply them for us
-   * automatically! *)
-
-  Lemma depth_pushMultiplicationInside'_snazzy : forall e,
-    depth (pushMultiplicationInside' 0 e) <= S (depth e).
-  Proof.
-    induct e; simplify;
-    try match goal with
-        | [ |- context[match ?E with _ => _ end] ] => cases E; simplify
-        end; linear_arithmetic.
-  Qed.
-
-  Theorem depth_pushMultiplicationInside : forall e,
-    depth (pushMultiplicationInside e) <= S (depth e).
-  Proof.
-    simplify.
-    unfold pushMultiplicationInside.
-    (* [unfold X]: replace [X] by its definition. *)
-    rewrite depth_pushMultiplicationInside'_irrelevance0.
-    apply depth_pushMultiplicationInside'.
-  Qed.
+(* More stuff in BasicSyntax.v. Do read the rest of the lecture. *)
 
 End ArithWithVariables.
