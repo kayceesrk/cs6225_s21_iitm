@@ -156,7 +156,7 @@ let rec subst x e1 e2 =
   match e2 with
   | Var x' -> if x = x' then e1 else Var x'
   | App e21 e22 -> App (subst x e1 e21) (subst x e1 e22)
-  | Lam x' e2' -> Lam x (subst x e1 e2') (* naive implementation *)
+  | Lam x' e2' -> Lam x' (subst x e1 e2') (* naive implementation *)
 
 val eval : exp -> Dv exp
 let rec eval e =
