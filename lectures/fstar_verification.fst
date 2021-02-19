@@ -16,8 +16,8 @@ let rec factorial n =
 
 (* We can also equivalently write pre- and post-conditions for this *)
 
-val factorial2 : x : int -> Pure int (requires (x >= 0))
-                                (ensures (fun y -> y >= 0))
+val factorial2 : x: int -> Pure int (requires (x >= 0))
+                               (ensures (fun y -> y >= 0))
 let rec factorial2 n =
   if n = 0 then 1 else n * factorial2 (n-1)
 
@@ -111,18 +111,17 @@ let rec append_len l1 l2 =
      ; assert (length l1 + length l2 = length l2)
    *)
 
-  | x::xs -> append_len xs l2 (* Inductive Case *)
-  (* Know recursive call's postcondition (rec_post): length (append2 xs l2) = length xs + length l2  *)
+  | x::xs -> (* Inductive Case *)
 
   (* To show: len (append2 (x::xs) l2) = length (x::xs) + length l2 *)
   (* Simplify: len (x::append2 xs l2) = length (x::xs) + length l2 *)
   (* Simplify: 1 + len (append2 xs l2) = (1 + length xs) + length l2 *)
 
-  (* Still to show: rec_post |= 1 + length (append2 xs l2) = (1 + length xs) + length l2 *)
-  (*       to show:     length (append2 xs l2) =      length xs  + length l2 |=
-                    1 + length (append2 xs l2) = (1 + length xs) + length l2 *)
-  (*       to show:     v1 =      v2  + v3 |=
-                    1 + v1 = (1 + v2) + v3 *)
+  append_len xs l2
+  (* Know recursive call's postcondition: length (append2 xs l2) = length xs + length l2  *)
+
+  (*     length (append2 xs l2) = length xs + length l2 |=
+     1 + length (append2 xs l2) = (1 + length xs) + length l2 *)
 
 (** Lemma Syntactic Sugar
 
@@ -180,7 +179,7 @@ let rec rev_snoc (#a:Type) l h =
     (* [h] == [h] *)
   | x::xs -> 
         rev_snoc xs h;
-        assert (rev (xs @ [h]) == h::rev xs)
+        assert (rev (snoc xs h) == h::rev xs)
     (* post-condition of recursive call (rec_post): rev (snoc xs h) == h::rev xs *)
     (*                                              rev (xs @ [h])  == h::rev xs *)
 
