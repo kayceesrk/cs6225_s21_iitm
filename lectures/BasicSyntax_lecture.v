@@ -313,7 +313,8 @@ Check Type.
   
   (* A stronger property about substitution. [<=] replaced by [<] *)
   Theorem substitute_depth' : forall replaceThis withThis inThis,
-    depth (substitute inThis replaceThis withThis) < depth inThis + depth withThis.
+    depth (substitute inThis replaceThis withThis) < 
+    depth inThis + depth withThis.
   Proof.
     induct inThis.
 
@@ -379,12 +380,14 @@ Check Type.
    * The [|-] syntax separates hypotheses and conclusion in a goal.
    * The [context] syntax is for matching against *any subterm* of a term.*)
   Theorem substitute_depth_snazzy : forall replaceThis withThis inThis,
-    depth (substitute inThis replaceThis withThis) <= depth inThis + depth withThis.
+    depth (substitute inThis replaceThis withThis) <= 
+    depth inThis + depth withThis.
   Proof.
     induct inThis; simplify;
     (* [try] tactical attempts to apply a tactic, and ignores failures *)
     try match goal with
-        | [ |- context[if ?a ==v ?b then _ else _] ] => cases (a ==v b); simplify
+        | [ |- context[if ?a ==v ?b then _ else _] ] => 
+          cases (a ==v b); simplify
         end;
     linear_arithmetic.
   Qed.
@@ -485,7 +488,7 @@ Check Type.
    * Such a pattern matches *any* [match] in a goal, over any type! *)
   Theorem size_constantFold : forall e, size (constantFold e) <= size e.
   Proof.
-    (*
+   (*
     induct e.
     - simplify. linear_arithmetic.
     - simplify. linear_arithmetic.
@@ -506,14 +509,20 @@ Check Type.
   Qed.
 
   (* Business as usual, with another commuting law *)
-  Theorem commuter_constantFold : forall e, commuter (constantFold e) = constantFold (commuter e).
+  Theorem commuter_constantFold : forall e, 
+    commuter (constantFold e) = constantFold (commuter e).
   Proof.
-    induct e; simplify;
+  
+    time (induct e; simplify;
     repeat match goal with
-           | [ |- context[match ?E with _ => _ end] ] => cases E; simplify
-           | [ H : ?f _ = ?f _ |- _ ] => invert H
-           | [ |- ?f _ = ?f _ ] => f_equal
-           end; equality || linear_arithmetic.
+           | [ |- context[match ?E with _ => _ end] ] => 
+               cases E; simplify; try equality
+           | [ H : ?f _ = ?f _ |- _ ] => 
+               invert H; try linear_arithmetic
+           | [ |- ?f _ = ?f _ ] => 
+               f_equal; try linear_arithmetic
+           end).
+  
     (* [f_equal]: when the goal is an equality between two applications of
      *   the same function, switch to proving that the function arguments are
      *   pairwise equal.

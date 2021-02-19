@@ -130,7 +130,8 @@ Fixpoint doSomeArithmetic (e : arith) : arith :=
   | Times e1 e2 => Times (doSomeArithmetic e1) (doSomeArithmetic e2)
   end.
 
-Theorem doSomeArithmetic_ok : forall e v, interp (doSomeArithmetic e) v = interp e v.
+Theorem doSomeArithmetic_ok : forall e v, 
+  interp (doSomeArithmetic e) v = interp e v.
 Proof.
   induct e; simplify; try equality.
 
@@ -261,9 +262,7 @@ Proof.
   equality.
 
   (* Here we want to use associativity of [++], to get the conclusion to match
-   * an induction hypothesis.  Let's ask Coq to search its library for lemmas
-   * that would justify such a rewrite, giving a pattern with wildcards, to
-   * specify the essential structure that the rewrite should match. *)
+   * an induction hypothesis.*)
   SearchRewrite ((_ ++ _) ++ _).
   (* Ah, we see just the one! *)
   rewrite app_assoc_reverse.
@@ -289,7 +288,8 @@ Proof.
 Qed.
 
 (* The overall theorem follows as a simple corollary. *)
-Theorem compile_ok : forall e v, run (compile e) v nil = interp e v :: nil.
+Theorem compile_ok : forall e v, 
+  run (compile e) v nil = interp e v :: nil.
 Proof.
   simplify.
 
@@ -442,11 +442,7 @@ Definition factorial_body :=
 
 (* Now for that lemma: self-composition of the body's semantics produces the
  * expected changes in the valuation.
- * 
- * Note that here we're careful to put the quantified variable [input] *first*,
- * because the variables coming after it will need to *change* in the course of
- * the induction.  Try switching the order to see what goes wrong if we put
-e * [input] later. *)
+ *)
 Lemma factorial_ok' : forall input output v,
   v $? "input" = Some input
   -> v $? "output" = Some output
@@ -470,7 +466,13 @@ Proof.
   rewrite (IHinput (output * S input)).
   (* Note the careful choice of a quantifier instantiation 
      for the IH! 
-     
+
+     o * fact input
+   = output * (1 + input) * fact input 
+       //instantiating o = output * (input + 1)
+   = output * (fact input + intput * fact input)
+       //distributing multiplication over addition
+
      Brings two more subgoals. *)
   
   all: clear IHinput.
@@ -495,6 +497,41 @@ Proof.
   equality.
   equality.
 Qed.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 (* One last example: let's try to do loop unrolling, for constant iteration

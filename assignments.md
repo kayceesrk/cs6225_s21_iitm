@@ -15,6 +15,7 @@ moodle](https://courses.iitm.ac.in/course/view.php?id=5339).
 |------------:|----------|----------|-------|
 | 1 | 03/02/2021 | 10/02/2021 | Functional Programming in Coq |
 | 2 | 12/02/2021 | 19/02/2021 | Logic + Induction |
+| 3 | 19/02/2021 | 26/02/2021 | Basic Syntax + Polymorphic containers |
 
 <br/>
 
