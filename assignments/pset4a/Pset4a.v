@@ -1,8 +1,8 @@
-(** CS6225 -- Pset5a (120 points) *)
+(** CS6225 -- Pset4a (120 points) *)
 
 (** * 6.822 Formal Reasoning About Programs, Spring 2018 - Pset 3 *)
 
-Require Import Frap Pset5aSig.
+Require Import Frap Pset4aSig.
 
 (* Define the identity function [id], which just returns its
  * argument without modification.

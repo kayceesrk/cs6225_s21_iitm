@@ -3,12 +3,12 @@
 COQC=coqc -q -R ../../frap Frap
 
 coq: frap
-	$(COQC) Pset5aSig.v
-	$(COQC) Pset5a.v
-	$(COQC) Pset5aCheck.v
+	$(COQC) Pset4bSig.v
+	$(COQC) Pset4b.v
+	$(COQC) Pset4bCheck.v
 
 frap:
 	make -C../../frap
 
 clean:
-	rm -f *.vo *.glob *~
+	rm -f *.vo* *.glob *~

@@ -1,7 +1,7 @@
-Require Import Frap Pset5bSig.
+Require Import Frap Pset4bSig.
 Require Import OrdersFacts.
 
-(* Before beginning this problem set, please see Pset5bSig.v,
+(* Before beginning this problem set, please see Pset4bSig.v,
  * which contains the instructions.
  *)
 
@@ -10,8 +10,8 @@ Require Import OrdersFacts.
  * this page:
  * https://coq.inria.fr/library/Coq.Structures.OrdersFacts.html
  *)
-Include (OrderedTypeFacts Pset5bSig).
-Include (OrderedTypeTest Pset5bSig).
+Include (OrderedTypeFacts Pset4bSig).
+Include (OrderedTypeTest Pset4bSig).
 (* Print OrderedTypeFacts. *)
 (* Print OrderedTypeTest. *)
 
