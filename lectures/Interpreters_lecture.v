@@ -534,8 +534,9 @@ Qed.
 
 
 
-(* One last example: let's try to do loop unrolling, for constant iteration
- * counts.  That is, we can duplicate the loop body instead of using an explicit
+(* One last example: let's try to do loop unrolling, 
+ * for constant iteration counts.  That is, we can 
+ * duplicate the loop body instead of using an explicit
  * loop. *)
 
 Fixpoint seqself (c : cmd) (n : nat) : cmd :=
