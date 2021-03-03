@@ -10,7 +10,7 @@ let _ = assert (max 0 1 = 1)
 
 let _ = assert (forall x y z. max x y = y && max y z = z ==>
                          max x z = z)
- 
+  
 (* Recursive functions *)
 
 val factorial: nat -> nat
@@ -166,7 +166,7 @@ let rec eval e =
   | Lam x e1 -> Lam x (eval e1)
   | _ -> e
 
-(* this loops forever *)
+(* this loops forever [(fun x.x x) (fun x.x x)]*)
 let loops_forever () = eval (App (Lam 0 (App (Var 0) (Var 0)))
                                  (Lam 0 (App (Var 0) (Var 0))))
 

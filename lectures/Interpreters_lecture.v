@@ -558,8 +558,9 @@ Fixpoint unroll (c : cmd) : cmd :=
 Example ex5 := repeat 5 doing Skip done.
 Compute unroll ex5.
 
-(* This obvious-sounding fact will come in handy: self-composition gives the
- * same result, when passed two functions that map equal inputs to equal
+(* This obvious-sounding fact will come in handy: 
+ * self-composition gives the same result, when 
+ * passed two functions that map equal inputs to equal
  * outputs. *)
 Lemma selfCompose_extensional : forall {A} (f g : A -> A) n x,
   (forall y, f y = g y)
@@ -580,8 +581,9 @@ Proof.
   induct n; simplify; equality.
 Qed.
 
-(* The two lemmas we just proved are the main ingredients to prove the natural
- * correctness condition for [unroll]. *)
+(* The two lemmas we just proved are the main 
+ * ingredients to prove the natural correctness 
+ * condition for [unroll]. *)
 Theorem unroll_ok : forall c v, exec (unroll c) v = exec c v.
 Proof.
   induct c; simplify; try equality.
