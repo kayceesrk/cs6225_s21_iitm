@@ -13,6 +13,10 @@ let _ = assert (forall x y z. max x y = y && max y z = z ==>
   
 (* Recursive functions *)
 
+nat <: int
+
+x:nat{x > 0} -> int <: nat -> nat 
+
 val factorial: nat -> nat
 let rec factorial n =
   if n = 0 then 1

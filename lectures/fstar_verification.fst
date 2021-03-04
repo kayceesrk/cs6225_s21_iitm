@@ -135,7 +135,7 @@ let rec append_len2 (l1 l2 : list 'a) :
   match l1 with
   | [] -> ()
   | x::xs -> append_len2 xs l2
- 
+
 (******************************************************************************)
 
 (** Why do we want to use extrinic proofs? *)
