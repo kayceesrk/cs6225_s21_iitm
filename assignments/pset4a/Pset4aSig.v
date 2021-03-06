@@ -1,4 +1,4 @@
-(** CS6225 PSet5a *)
+(** CS6225 PSet4a *)
 
 (** * 6.822 Formal Reasoning About Programs, Spring 2018 - Pset 3 *)
 
