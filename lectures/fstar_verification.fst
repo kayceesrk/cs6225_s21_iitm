@@ -179,7 +179,7 @@ let rec rev_snoc (#a:Type) l h =
     (* snoc [] h == [h] *)
     (* [] @ [h] == [h] *)
     (* [h] == [h] *)
-  | x::xs -> 
+  | x::xs ->
         rev_snoc xs h;
         assert (rev (snoc xs h) == h::rev xs)
     (* post-condition of recursive call (rec_post): rev (snoc xs h) == h::rev xs *)
@@ -270,7 +270,6 @@ let rec sorted l = match l with
     | x::y::xs -> (x <= y) && (sorted (y::xs))
 
 (*
-
 val insert_sorted :
   a:int ->
   l:list int{sorted l} ->
@@ -283,7 +282,6 @@ let rec insert_sorted a l = match l with
      else
        x::insert_sorted a xs
 *)
-
 (*
 val insert_sorted :
   a:int ->
@@ -305,6 +303,8 @@ let rec insert_sorted a l = match l with
        r
 *)
 
+(* admit () 
+   admitP (P1) *)
 
 (* Suprisingly, from the definition of [sorted], we don't automatically get the proof that
 
@@ -423,8 +423,8 @@ let rec leftmost tr =
   | Leaf -> None
   | Node v lt _ ->
     match lt with
-  | Leaf -> Some v
-  | _ -> leftmost lt
+    | Leaf -> Some v
+    | _ -> leftmost lt
 
 (*
 val swivel : tr:tree -> r:tree{rightmost tr = leftmost r}
