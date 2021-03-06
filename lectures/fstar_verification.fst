@@ -1,6 +1,8 @@
 module Fstar_verification
 
 open FStar.Mul
+module List = FStar.List.Tot.Base
+  
 
 (** There are two approaches to verification in F*
 
@@ -228,17 +230,17 @@ val append_mem:  #a:eqtype -> l1:list a -> l2:list a -> x:a
 let rec append_mem (#a:eqtype) l1 l2 x =
   match l1 with
   | [] -> ()
-  | hd::tl -> 
+  | hd::tl ->
       append_mem tl l2 x
-      // (1) mem x (append tl l2 x) <==> mem x tl || mem x l2
+      // (IH) mem x (append tl l2 x) <==> mem x tl || mem x l2
       // To show:   mem x (append (hd::tl) l2) <==> mem x (hd::tl) || mem x l2
       // simplify:  mem x (hd::append tl l2) <==> hd = x || mem x tl || mem x l2
       // simplify:  hd = x || mem x (append tl l2) <==> hd = x || mem x tl || mem x l2
-      // Proved by (1)
+      // Proved by rewriting using IH
 
 (******************************************************************************)
 
-(** Tail recursive factorial *)
+(** Tail recursive factorial [recall from Coq Induction lecture]*)
 
 val fact_tail_rec' : n:nat -> acc:nat -> r:nat{r = factorial n * acc}
 let rec fact_tail_rec' n acc =
@@ -283,98 +285,102 @@ let rec insert_sorted a l = match l with
 *)
 
 (*
-
 val insert_sorted :
   a:int ->
   l:list int{sorted l} ->
-  Tot (r:list int{sorted r /\ (forall x. mem x r <==> x==a \/ mem x l)})
+  Tot (r:list int{sorted r /\ (forall x. mem x r <==> x=a \/ mem x l)})
 let rec insert_sorted a l = match l with
   | [] -> [a]
   | x::xs ->
      if a <= x then
        a::l
      else
-      // To prove:
-          let _ = assert (forall y. mem y (x::insert_sorted a xs) <==> y == a \/ mem y (x::xs)) in 
-          // let _ = assert (sorted (x::insert_sorted a xs)) in
-       // From the branch we are in:
-          let _ = assert (x < a) in
-       // From the recursive invocation:
-          let _ = assert (sorted (insert_sorted a xs)) in 
-          let _ = assert (forall z. mem z (insert_sorted a xs) <==> z = a \/ mem z xs) in 
-          x::insert_sorted a xs
+       let stl = insert_sorted a xs in
+       assert (forall y. mem y stl <==> y = a \/ mem y xs);
+       assert (sorted stl);
+       assert (a > x);
+       let r = x::stl in
+       assert (forall x. mem x r <==> x = a \/ mem x l);
+       //assert (sorted r);
+       r
+*)
+
+
+(* Suprisingly, from the definition of [sorted], we don't automatically get the proof that
+
+   [sorted (x::xs) ==> (forall y. mem y xs ==> x <= y)]
 
 *)
 
-(*
-val insert_sorted :
+val insert_sorted_ :
   a:int ->
   l:list int{sorted l} ->
-  Tot (r:list int{sorted r /\ (forall x. mem x r <==> x==a \/ mem x l)})
-let rec insert_sorted a l = match l with
+  Tot (r:list int{sorted r /\ (forall x. mem x r <==> x=a \/ mem x l)})
+let rec insert_sorted_ a l = match l with
   | [] -> [a]
   | x::xs ->
      if a <= x then
        a::l
      else
-       let _ = assert (sorted (insert_sorted a xs)) in
-       let _ = assert (x < a) in
-       let r = insert_sorted a xs in
-       let m::_ = r in
-       if mem m xs then admit () else () (* [case (m = a)] x < a ==> x < m *);
-       x::r
-*)
+       let stl = insert_sorted_ a xs in
+       assert (forall y. mem y stl <==> y = a \/ mem y xs);
+       assert (sorted stl);
+       assert (a > x);
+       let r = x::stl in
+       assert (forall x. mem x r <==> x = a \/ mem x l);
+       //assert (sorted r);
+       admitP(forall y. mem y xs ==> x <= y);
+       r
 
-(*
-val insert_sorted :
-  a:int ->
-  l:list int{sorted l} ->
-  Tot (r:list int{sorted r /\ (forall x. mem x r <==> x==a \/ mem x l)})
-let rec insert_sorted a l = match l with
-  | [] -> [a]
-  | x::xs ->
-     if a <= x then
-       a::l
-     else
-       let _ = assert (sorted (insert_sorted a xs)) in
-       let _ = assert (x < a) in
-       let r = insert_sorted a xs in
-       let m::_ = r in
-       if mem m xs then assume (x < m) else () (* m = a /\ x < a ==> x < m *);
-       x::r
-*)
+val sorted_smaller_:
+  x:int ->
+  xs:list int ->
+  m:int ->
+  Lemma (requires (sorted (x::xs) /\ mem m xs))
+        (ensures (x <= m))
+let rec sorted_smaller_ x xs m = match xs with
+    | [] -> ()
+    | y::ys -> if y=m then () else sorted_smaller_ x ys m
+
+(* Proof engineering: show how [admit] works *)
 
 val sorted_smaller:
+  x:int ->
+  xs:list int ->
+  Lemma (requires (sorted (x::xs)))
+        (ensures (forall y. mem y xs ==> x <= y))
+        (decreases (length (x::xs)))
+let rec sorted_smaller x xs =
+  match xs with
+  | [] -> ()
+  | y::ys -> sorted_smaller_ x xs y; sorted_smaller y ys
+
+val insert_sorted__ :
+  a:int ->
+  l:list int{sorted l} ->
+  Tot (r:list int{sorted r /\ (forall x. mem x r <==> x=a \/ mem x l)})
+let rec insert_sorted__ a l = match l with
+  | [] -> [a]
+  | x::xs ->
+     if a <= x then
+       a::l
+     else begin
+       sorted_smaller x xs;
+       x::insert_sorted__ a xs
+     end
+
+(* Use of SMTpat *)
+
+val sorted_smaller_smtpat:
   x:int ->
   xs:list int ->
   m:int ->
   Lemma (requires (sorted (x::xs) /\ mem m xs))
         (ensures (x <= m))
         [SMTPat (sorted (x::xs)); SMTPat (mem m xs)]
-let rec sorted_smaller x xs m = match xs with
+let rec sorted_smaller_smtpat x xs m = match xs with
     | [] -> ()
-    | y::ys -> if y=m then () else sorted_smaller x ys m
-
-
-(*
-val insert_sorted :
-  a:int ->
-  l:list int{sorted l} ->
-  Tot (r:list int{sorted r /\ (forall x. mem x r <==> x==a \/ mem x l)})
-let rec insert_sorted a l = match l with
-  | [] -> [a]
-  | x::xs ->
-     if a <= x then
-       a::l
-     else
-       let _ = assert (sorted (insert_sorted a xs)) in
-       let _ = assert (sorted (x::xs)) in (* 1 *)
-       let _ = assert (x < a) in
-       let r = insert_sorted a xs in
-       let m::_ = r in
-       if mem m xs (* 2 *) then sorted_smaller x xs m else () (* m = a /\ x < a ==> x < m *);
-       x::r
-*)
+    | y::ys -> if y=m then () else sorted_smaller_smtpat x ys m
 
 val insert_sorted :
   a:int ->
@@ -386,9 +392,8 @@ let rec insert_sorted a l = match l with
      if a <= x then
        a::l
      else
-       (* [sorted_smaller x xs (hd (insert_sorted a xs))] is implicitly used *)
        x::insert_sorted a xs
- 
+
 (* Insertion sort *)
 val sort : l:list int -> Tot (m:list int{sorted m /\ (forall x. mem x l == mem x m)})
 let rec sort l = match l with
@@ -421,21 +426,20 @@ let rec leftmost tr =
   | Leaf -> Some v
   | _ -> leftmost lt
 
+(*
 val swivel : tr:tree -> r:tree{rightmost tr = leftmost r}
 let rec swivel tr =
   match tr with
   | Leaf -> Leaf
   | Node v lt rt -> 
-   Node v (swivel rt) (swivel lt)
-
+      Node v (swivel rt) (swivel lt)
+*)
 
 val root : tr:tree -> Tot (option int)
 let root tr = match tr with
   | Leaf -> None
   | Node v _ _ -> Some v
 
-
-(*
 val swivel : tr:tree -> r:tree{rightmost tr = leftmost r}
 let rec swivel tr =
   match tr with
@@ -445,10 +449,10 @@ let rec swivel tr =
       let ih2 = rightmost rt = leftmost (swivel rt) in
       assert (ih1);
       assert (ih2);
-      (* assert (root rt = root (swivel rt)); *)
-      assert (ih2 ==>  rightmost tr = leftmost (Node v (swivel rt) (swivel lt)));
-      Node v (swivel rt) (swivel lt)
-*)
+      admitP (root rt = root (swivel rt));
+      let r = Node v (swivel rt) (swivel lt) in
+      assert (ih1 /\ ih2 ==>  rightmost tr = leftmost r);
+      r
 
 val swivel2 :
   tr:tree ->
