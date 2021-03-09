@@ -14,7 +14,7 @@ permalink: /schedule/
 | 6 | Interpreters | 16/02, 17/02, 18/02, 01/03 | [Coq]({{site.baseurl}}/lectures/Interpreters.v),  [slides (key)]({{site.baseurl}}/lectures/1_interpreters.key), [slides (pdf)]({{site.baseurl}}/lectures/1_interpreters.pdf) | |
 | 7 | Functional Programming in F\* | 01/03, 02/03, 03/03 | [slides(key)]({{site.baseurl}}/lectures/2_fstar_functional_programming.key), [slides(pdf)]({{site.baseurl}}/lectures/2_fstar_functional_programming.pdf), [fst]({{site.baseurl}}/lectures/fstar_functional.fst) | [Nik Swamy's OPLSS lectures](https://www.youtube.com/playlist?list=PL0DsGHMPLUWW4YQ7sGRNMB7O3lYMKwFEi) |
 | 8 | Verifying Functional Programs in F\* | 04/03, 06/03 (2 * 50 minutes) | [fst]({{site.baseurl}}/lectures/fstar_verification.fst) | |
-| 9 | Logic Programming | | [Coq]({{site.baseurl}}/lectures/LogicProgramming.v) | |
+| 9 | Logic Programming | 08/03, 09/03 | [Coq]({{site.baseurl}}/lectures/LogicProgramming.v) | |
 | 10 | Transition Systems | | [Coq]({{site.baseurl}}/lectures/TransitionSystems.v), [slides (key)]({{site.baseurl}}/lectures/2_transition_systems.key), [slides (pdf)]({{site.baseurl}}/lectures/2_transition_systems.pdf) | |
 | 11 | Operational Semantics | | [Coq]({{site.baseurl}}/lectures/OperationalSemantics.v), [slides (key)]({{site.baseurl}}/lectures/3_operational_semantics.key), [slides (pdf)]({{site.baseurl}}/lectures/3_operational_semantics.pdf) | |
 | 12 | Lambda Calculus |  | [Coq]({{site.baseurl}}/lectures/LambdaCalculus.v), [slides (key)]({{site.baseurl}}/lectures/4_lambda_calculus.key), [slides (pdf)]({{site.baseurl}}/lectures/4_lambda_calculus.pdf) | |
