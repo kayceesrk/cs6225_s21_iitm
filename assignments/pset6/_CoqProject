@@ -1,0 +1,4 @@
+-R ../../frap Frap -R . ""
+Pset6Sig.v
+Pset6.v
+Pset6Check.v
