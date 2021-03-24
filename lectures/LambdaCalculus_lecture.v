@@ -218,6 +218,8 @@ Module Ulc.
     rewrite subst_m_canonical'.
     apply add_ok'.
   Qed.
+  
+  (* ----Skipping multiplication---- *)
 
   (** * Small-step semantics with evaluation contexts *)
 
@@ -293,88 +295,8 @@ Module Ulc.
     induct 1; eauto.
   Qed.
 
-  Lemma plug_functional : forall C e e1,
-      plug C e e1
-      -> forall e2, plug C e e2
-                    -> e1 = e2.
-  Proof.
-    induct 1; invert 1; simplify; try f_equal; eauto.
-  Qed.
-
-  Lemma plug_mirror : forall C e e', plug C e e'
-    -> forall e1, exists e1', plug C e1 e1'.
-  Proof.
-    induct 1; simplify; eauto.
-
-    specialize (IHplug e0); first_order; eauto.
-
-    specialize (IHplug e0); first_order; eauto.
-  Qed.    
-
-  Fixpoint compose (C1 C2 : context) : context :=
-    match C2 with
-    | Hole => C1
-    | App1 C2' e => App1 (compose C1 C2') e
-    | App2 v C2' => App2 v (compose C1 C2')
-    end.
-
-  Lemma compose_ok : forall C1 C2 e1 e2 e3,
-      plug C1 e1 e2
-      -> plug C2 e2 e3
-      -> plug (compose C1 C2) e1 e3.
-  Proof.
-    induct 2; simplify; eauto.
-  Qed.
-
-  Hint Resolve compose_ok.
-
-  Lemma step_plug : forall e1 e2,
-    step e1 e2
-    -> forall C e1' e2', plug C e1 e1'
-                         -> plug C e2 e2'
-                         -> step e1' e2'.
-  Proof.
-    invert 1; simplify; eauto.
-  Qed.
-
-  Lemma stepStar_plug : forall e1 e2,
-    step^* e1 e2
-    -> forall C e1' e2', plug C e1 e1'
-                         -> plug C e2 e2'
-                         -> step^* e1' e2'.
-  Proof.
-    induct 1; simplify.
-
-    assert (e1' = e2') by (eapply plug_functional; eassumption).
-    subst.
-    constructor.
-
-    assert (exists y', plug C y y') by eauto using plug_mirror.
-    invert H3.
-    eapply step_plug in H.
-    econstructor.
-    eassumption.
-    eapply IHtrc.
-    eassumption.
-    assumption.
-    eassumption.
-    assumption.
-  Qed.
-
-  Hint Resolve stepStar_plug eval_value.
-
-  Theorem eval_step : forall e v,
-    eval e v
-    -> step^* e v.
-  Proof.
-    induct 1; eauto.
-
-    eapply trc_trans.
-    eapply stepStar_plug with (e1 := e1) (e2 := Abs x e1') (C := App1 Hole e2); eauto.
-    eapply trc_trans.
-    eapply stepStar_plug with (e1 := e2) (e2 := v2) (C := App2 (Abs x e1') Hole); eauto.
-    eauto.
-  Qed.
+  (* Skipping BigStep ==> SmallStep *)
+  
 End Ulc.
 
 

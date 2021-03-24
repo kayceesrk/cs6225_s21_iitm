@@ -1080,12 +1080,14 @@ Module Concurrent.
     econstructor.
     econstructor.
     econstructor.
+    simplify.
 
     econstructor.
     eapply CStep with (C := CPar1 Hole _); eauto.
 
     econstructor.
     eapply CStep with (C := CPar1 Hole _); eauto.
+    simplify.
 
     econstructor.
     eapply CStep with (C := Hole); eauto.
@@ -1094,12 +1096,14 @@ Module Concurrent.
 
     econstructor.
     eapply CStep with (C := CSeq Hole _); eauto.
+    simplify.
 
     econstructor.
     eapply CStep with (C := Hole); eauto.
 
     econstructor.
     eapply CStep with (C := Hole); eauto.
+    simplify.
 
     econstructor.
 
@@ -1120,6 +1124,7 @@ Module Concurrent.
 
     econstructor.
     eapply CStep with (C := CPar2 _ (CSeq Hole _)); eauto.
+    simplify.
 
     econstructor.
     eapply CStep with (C := CPar1 Hole _); eauto.
@@ -1135,7 +1140,8 @@ Module Concurrent.
 
     econstructor.
     eapply CStep with (C := Hole); eauto.
-
+    simplify. 
+    
     econstructor.
 
     simplify.

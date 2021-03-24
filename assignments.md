@@ -18,6 +18,8 @@ moodle](https://courses.iitm.ac.in/course/view.php?id=5339).
 | 3 | 19/02/2021 | 26/02/2021 | Basic Syntax + Polymorphic containers |
 | 4 | 26/02/2021 | 05/03/2021 | Higher-order functions + BST | 
 | 5 | 06/03/2021 | 13/03/2021 | F\* verification |
+| 6 | 15/03/2021 | 22/03/2021 | Transition Systems |
+| 7 | 25/03/2021 | 12/04/2021 | Operational Semantics |
 
 <br/>
 
