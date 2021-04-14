@@ -93,6 +93,7 @@ Module Ulc.
     invert H0.
     simplify.
     apply IHeval3.
+    unfold omega.
     trivial.
   Qed.
 
@@ -128,7 +129,7 @@ Module Ulc.
   Proof.
     unfold zero, represents, canonical.
     simplify.
-    econstructor.
+    info_eauto.
   Qed.
 
   (* So does our successor operation. *)
@@ -270,7 +271,10 @@ Module Ulc.
     -> eval e2 v0
     -> eval e1 v0.
   Proof.
+    induct c. invert 2. invert 1. simplify. econstructor. econstructor. invert H. econstructor. eassumption.
+  Restart.
     induct c; invert 2; invert 1; simplify; eauto.
+
     invert H0; eauto.
     invert H0; eauto.
   Qed.
@@ -282,7 +286,7 @@ Module Ulc.
     -> forall v, eval e2 v
       -> eval e1 v.
   Proof.
-    invert 1; simplify; eauto.
+    invert 1. simplify. info_eauto.
   Qed.
 
   Hint Resolve step_eval'.
@@ -292,6 +296,9 @@ Module Ulc.
     -> value v
     -> eval e v.
   Proof.
+    induct 1. invert 1. econstructor.
+    intros. eapply step_eval'. eassumption. apply IHtrc. assumption.
+  Restart.
     induct 1; eauto.
   Qed.
 
@@ -422,11 +429,25 @@ Module Stlc.
 
   Example one_plus_one : hasty $0 (1 ^+^ 1) Nat.
   Proof.
-    repeat (econstructor; simplify).
+  simple apply HtPlus.
+  simple apply HtConst.
+  simple apply HtConst.
+  Restart.
+    info_eauto.
   Qed.
 
   Example add : hasty $0 (\"n", \"m", "n" ^+^ "m") (Nat --> Nat --> Nat).
   Proof.
+    econstructor.
+    econstructor.
+    econstructor.
+    econstructor.
+    simplify.
+    econstructor.
+    econstructor.
+    simplify.
+    econstructor.
+  Restart.
     repeat (econstructor; simplify).
   Qed.
 
@@ -487,7 +508,7 @@ Module Stlc.
     | [ H : step _ _ |- _ ] => invert H
     end.
     right.
-    eauto.
+    info_eauto.
 
     match goal with
     | [ H : exists x, _ |- _ ] => invert H
@@ -496,7 +517,7 @@ Module Stlc.
     | [ H : step _ _ |- _ ] => invert H
     end.
     right.
-    eauto.
+    info_eauto.
 
     match goal with
     | [ H : exists x, step e1 _ |- _ ] => invert H
@@ -507,7 +528,7 @@ Module Stlc.
     right.
     exists (Plus x e2).
     eapply StepRule with (C := Plus1 C e2).
-    eauto.
+    econstructor. eassumption.
     eauto.
     assumption.
 
@@ -534,7 +555,7 @@ Module Stlc.
     | [ H : step _ _ |- _ ] => invert H
     end.
     right.
-    eauto.
+    info_eauto.
 
     match goal with
     | [ H : exists x, _ |- _ ] => invert H
@@ -554,20 +575,9 @@ Module Stlc.
     right.
     exists (App x e2).
     eapply StepRule with (C := App1 C e2).
-    eauto.
+    info_eauto.
     eauto.
     assumption.
-  Qed.
-
-  (* Inclusion between typing contexts is preserved by adding the same new mapping
-   * to both. *)
-  Lemma weakening_override : forall (G G' : fmap var type) x t,
-    (forall x' t', G $? x' = Some t' -> G' $? x' = Some t')
-    -> (forall x' t', G $+ (x, t) $? x' = Some t'
-                      -> G' $+ (x, t) $? x' = Some t').
-  Proof.
-    simplify.
-    cases (x ==v x'); simplify; eauto.
   Qed.
 
   (* This lemma lets us transplant a typing derivation into a new context that
@@ -593,8 +603,11 @@ Module Stlc.
 
     constructor.
     apply IHhasty.
-    apply weakening_override.
-    assumption.
+    simplify.
+    cases (x ==v x0). 
+    simplify. assumption.
+    simplify.
+    apply H0. assumption.
 
     econstructor.
     apply IHhasty1.
@@ -633,10 +646,11 @@ Module Stlc.
     cases (x0 ==v x).
 
     constructor.
+    invert e.
     eapply weakening.
     eassumption.
     simplify.
-    cases (x0 ==v x1).
+    cases (x0 ==v x).
 
     simplify.
     assumption.
@@ -682,6 +696,7 @@ Module Stlc.
       -> (forall t, hasty $0 e1 t -> hasty $0 e2 t)
       -> (forall t, hasty $0 e1' t -> hasty $0 e2' t).
   Proof.
+    (* skipping... *)
     induct 1; simplify.
 
     invert H.
