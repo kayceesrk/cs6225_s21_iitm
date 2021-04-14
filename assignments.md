@@ -20,6 +20,10 @@ moodle](https://courses.iitm.ac.in/course/view.php?id=5339).
 | 5 | 06/03/2021 | 13/03/2021 | F\* verification |
 | 6 | 15/03/2021 | 22/03/2021 | Transition Systems |
 | 7 | 25/03/2021 | 12/04/2021 | Operational Semantics |
+| 8 | 14/04/2021 | 26/04/2021 | Lambda Calculus |
+| 9 | | | Compiler Correctness |
+| 10 | | | Hoare Logic |
+| 11 | | | F\* effects |
 
 <br/>
 
