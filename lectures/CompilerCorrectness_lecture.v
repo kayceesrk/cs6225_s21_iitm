@@ -160,6 +160,7 @@ Infix "=|" := traceEquivalence (at level 70).
 Definition daysPerWeek := 7.
 Definition weeksPerMonth := 4.
 Definition daysPerMonth := (daysPerWeek * weeksPerMonth)%arith.
+Print daysPerMonth.
 (* We are purposely building an expression with arithmetic that can be resolved
  * at compile time, to give our optimizations something to do. *)
 
@@ -189,6 +190,7 @@ Theorem first_few_values :
   generate ($0, month_boundaries_in_days) [Some 28; Some 56].
 Proof.
   unfold month_boundaries_in_days.
+  Print generate.
   eapply GenSilent.
   eapply CStep with (C := CSeq Hole _); eauto.
   eapply GenSilent.
@@ -217,7 +219,8 @@ Proof.
   eapply CStep with (C := CSeq Hole _); eauto.
   eapply GenOutput.
   eapply CStep with (C := CSeq Hole _); eauto.
-  constructor.
+  Check GenDone.
+  eapply GenDone.
 Qed.
 
 
@@ -255,11 +258,9 @@ Fixpoint cfoldArith (e : arith) : arith :=
 Theorem cfoldArith_ok : forall v e,
     interp (cfoldArith e) v = interp e v.
 Proof.
-  induct e; simplify; try equality;
-  repeat (match goal with
-          | [ |- context[match ?E with _ => _ end] ] => cases E
-          | [ H : _ = interp _ _ |- _ ] => rewrite <- H
-          end; simplify); subst; ring.
+  induct e; simplify; try equality.
+  all: cases (cfoldArith e1); simplify; try equality.
+  all: cases (cfoldArith e2); simplify; try equality.
 Qed.
 
 Fixpoint cfoldExprs (c : cmd) : cmd :=
@@ -333,11 +334,13 @@ Proof.
         end; eauto.
 Qed.
 
+ 
+(* If you want more details, see skipped portions from 
+ * [OperationalSemantics.v], though the details are not important here *)
+
 (* Finally, the big theorem we are after: the [cstep] relation is
  * deterministic. 
- 
- * If you want more details, see skipped portions from 
- * [OperationalSemantics.v], though the details are not important here *)
+ *)
 
 Lemma deterministic0 : forall vc l vc',
   step0 vc l vc'
@@ -380,13 +383,14 @@ Section simulation.
   (* Starting from two related states, when the lefthand one makes a step, the
    * righthand one can make a matching step, such that the new states are also
    * related. *)
-  Hypothesis one_step : forall vc1 vc2, R vc1 vc2
+  Hypothesis one_step : forall vc1 vc2, 
+      R vc1 vc2
     -> forall vc1' l, cstep vc1 l vc1'
-      -> exists vc2', cstep vc2 l vc2' /\ R vc1' vc2'.
+    -> exists vc2', cstep vc2 l vc2' /\ R vc1' vc2'.
 
   (* When a righthand command is related to [Skip], it must be [Skip], too. *)
-  Hypothesis agree_on_termination : forall v1 v2 c2, R (v1, Skip) (v2, c2)
-    -> c2 = Skip.
+  Hypothesis agree_on_termination : forall v1 v2 c2, 
+    R (v1, Skip) (v2, c2) -> c2 = Skip.
 
   (* First (easy) step: [R] implies left-to-right trace inclusion. *)
 
@@ -399,26 +403,54 @@ Section simulation.
 
     cases vc2.
     apply agree_on_termination in H; subst.
-    auto.
+    info_auto.
 
-    eapply one_step in H; eauto.
+    (* See [H] and [H1] 
+      
+      vc------R------>vc2
+       |
+       |None
+       |
+       v
+      vc'
+      
+    *)
+    eapply one_step in H1.
     first_order.
     eapply GenSilent.
     eassumption.
-    apply IHgenerate.
+    eapply IHgenerate.
+    eassumption.
     eassumption.
 
-    eapply one_step in H1; eauto.
+    (* See [H] and [H1] 
+      
+      vc------R------>vc2
+       |
+       |Some(n)
+       |
+       v
+      vc'
+      
+    *)
+    eapply one_step in H1.
     first_order.
     eapply GenOutput.
     eassumption.
     apply IHgenerate.
-    assumption.
+    eassumption.
+    eassumption.
   Qed.
 
   Theorem simulation_fwd : forall vc1 vc2, R vc1 vc2
     -> vc1 <| vc2.
   Proof.
+    unfold traceInclusion.
+    simplify.
+    eapply simulation_fwd'.
+    eassumption.
+    eassumption.
+  Restart.
     unfold traceInclusion; eauto using simulation_fwd'.
   Qed.
 
@@ -437,21 +469,62 @@ Section simulation.
        cstep (v0, c) l (v', c')) by apply skip_or_step.
     first_order; subst.
     info_auto.
+    (* See [H0] and [H] 
+      
+      (v0,c)------R------>(v,Skip)
+        |
+        |x0
+        |
+        v
+      (x,x1)
+      
+     *)
     eapply one_step in H; eauto.
-      (* [cstep (v, Skip) x0 vc2'] derives a contradiction *)
     first_order.
+      (* [cstep (v, Skip) x0 vc2'] derives a contradiction *)
     invert H.
     invert H4.
     invert H5.
     
+    (* See [H1] and [H] 
+      
+      vc1------R------>vc
+                       |
+                       |None
+                       |
+                       v
+                      vc'
+      
+    *)
     cases vc1; cases vc.
-    assert (c = Skip \/ exists v' l c', cstep (v, c) l (v', c')) by apply skip_or_step.
+    (* See [H] and [H1]
+      
+      (v,c)------R------>(v0,c0)
+                            |
+                            |None
+                            |
+                            v
+                           vc'
+      
+    *)
+    assert (c = Skip \/ exists v' l c', 
+      cstep (v, c) l (v', c')) by apply skip_or_step.
     first_order; subst.
     apply agree_on_termination in H1; subst.
       (* [cstep (v0, Skip) None vc'] derives a contradiction *)
     invert H.
     invert H3.
     invert H4.
+    (* See [H], [H1] and [H2]
+      
+      (v,c)------R------>(v0,c0)
+        |                   |
+        |x0                 |None
+        |                   |
+        v                   v
+      (x,x1)               vc' 
+      
+    *)
     specialize (one_step H1 H2).
     first_order.
       (* The cstep in [H] and [H3] must represent the same 
@@ -464,14 +537,37 @@ Section simulation.
     trivial.
 
     cases vc1; cases vc.
-    assert (c = Skip \/ exists v' l c', cstep (v, c) l (v', c')) by apply skip_or_step.
+    (* See [H] and [H1]
+      
+      (v,c)------R------>(v0,c0)
+                            |
+                            |Some n
+                            |
+                            v
+                           vc'
+      
+    *)
+    assert (c = Skip \/ exists v' l c', 
+      cstep (v, c) l (v', c')) by apply skip_or_step.
     first_order; subst.
     apply agree_on_termination in H1; subst.
     invert H.
     invert H3.
     invert H4.
+    (* See [H], [H1] and [H2]
+      
+      (v,c)------R------>(v0,c0)
+        |                   |
+        |x0                 |Some n
+        |                   |
+        v                   v
+      (x,x1)               vc' 
+      
+    *)
     specialize (one_step H1 H2).
     first_order.
+      (* The cstep in [H] and [H3] must represent the same 
+         label and end state thanks to determinism. *)
     eapply deterministic in H; eauto.
     propositional; subst.
     eauto.
@@ -504,8 +600,10 @@ Lemma cfoldExprs_ok' : forall v1 c1 l v2 c2,
 Proof.
   invert 1; simplify;
     try match goal with
-        | [ _ : context[interp ?e ?v] |- _ ] => rewrite <- (cfoldArith_ok v e) in *
-        | [ |- context[interp ?e ?v] ] => rewrite <- (cfoldArith_ok v e)
+        | [ _ : context[interp ?e ?v] |- _ ] => 
+          rewrite <- (cfoldArith_ok v e) in *
+        | [ |- context[interp ?e ?v] ] => 
+          rewrite <- (cfoldArith_ok v e)
         end; eauto.
 Qed.
 
@@ -533,8 +631,9 @@ Proof.
   (* Notice our clever choice of a simulation relation here, much as we often
    * choose strengthened invariants.  We basically just recast the theorem
    * statement as a two-state predicate using equality. *)
-  apply simulation with (R := fun vc1 vc2 => fst vc1 = fst vc2
-                                             /\ snd vc2 = cfoldExprs (snd vc1)).
+  apply simulation with 
+    (R := fun vc1 vc2 => fst vc1 = fst vc2
+                         /\ snd vc2 = cfoldExprs (snd vc1)).
     (* The three sub-goals correspond to the 2 hypotheses and 1 variable *)
     
   2: { simplify. propositional. } (* agree_on_termination *)
@@ -544,8 +643,8 @@ Proof.
   invert H0; simplify; subst.
   apply cfoldExprs_ok' in H3.
   eexists; propositional.
-  cases vc2. simplify. subst. 
-  eauto.
+  cases vc2. simplify. subst. (* [H2] *)
+  info_eauto.
   simplify. trivial.
   equality.
 Qed.
@@ -687,13 +786,16 @@ Lemma silent_generate_bwd : forall ns vc vc',
     -> generate vc' ns
     -> generate vc ns.
 Proof.
-  induct 1; eauto.
+  induct 1. 
+  equality. 
+  simplify. eapply GenSilent. eassumption. equality.
 Qed.
 
 Lemma generate_Skip : forall v a ns,
     generate (v, Skip) (Some a :: ns)
     -> False.
 Proof.
+  (* Skipping this.. *)
   induct 1; simplify.
 
   invert H.
@@ -751,14 +853,31 @@ Section simulation_skipping.
     subst.
     auto.
 
+    (* See [H] and [H1] 
+      
+      vc------Rn------>vc2
+       |
+       |None
+       |
+       v
+      vc'
+      
+      [H0] : generate vc' ns
+    *)
     eapply one_step in H; eauto.
     first_order.
-    eauto.
+    eapply GenSilent.
+    eassumption.
+    eapply IHgenerate.
+    eassumption.
 
     eapply one_step in H1; eauto.
     first_order.
     equality.
-    eauto.
+    eapply GenOutput.
+    eassumption.
+    eapply IHgenerate.
+    eassumption.
   Qed.
 
   Theorem simulation_skipping_fwd : forall n vc1 vc2, R n vc1 vc2
@@ -767,8 +886,9 @@ Section simulation_skipping.
     unfold traceInclusion; eauto using simulation_skipping_fwd'.
   Qed.
 
-  (* This one isn't so obvious: a step on the right can now be matched by
-   * _one or more_ steps on the left, preserving [R]. *)
+  (* Right to left isn't so obvious: 
+   *    a step on the right can now be matched by 
+   *    _one or more_ steps on the left, preserving [R]. *)
   Lemma match_step : forall n vc2 l vc2' vc1,
       cstep vc2 l vc2'
       -> R n vc1 vc2
@@ -779,32 +899,61 @@ Section simulation_skipping.
     induct n; simplify.
 
     cases vc1; cases vc2.
-    assert (c = Skip \/ exists v' l' c', cstep (v, c) l' (v', c')) by apply skip_or_step.
+    assert (c = Skip \/ exists v' l' c', 
+      cstep (v, c) l' (v', c')) by apply skip_or_step.
     first_order; subst.
     apply agree_on_termination in H0; subst.
     invert H.
     invert H2.
     invert H3.
-    eapply one_step in H0; eauto.
-    first_order; subst.
-    equality.
+    (* See [H], [H0] and [H1] 
+      
+      (v,c)------R(0)------>(v0,c0)
+        |                      |
+        |x0                    |l
+        |                      |
+        v                      v
+      (x,x1)                  vc2'
+      
+    *)
+    1: { eapply one_step in H0; eauto.
+    first_order.
+    equality. (* derive contradiction from [H0] *)
     eapply deterministic in H; eauto.
     first_order; subst.
-    eauto 6.
+    do 3 eexists. propositional.
+    eapply TrcRefl.
+    eassumption.
+    eassumption.
+    }
     
     cases vc1; cases vc2.
-    assert (c = Skip \/ exists v' l' c', cstep (v, c) l' (v', c')) by apply skip_or_step.
+    assert (c = Skip \/ exists v' l' c', 
+      cstep (v, c) l' (v', c')) by apply skip_or_step.
     first_order; subst.
     apply agree_on_termination in H0; subst.
     invert H.
     invert H2.
     invert H3.
+    (* See [H], [H0] and [H1] 
+      
+      (v,c)------R(n+1)---->(v0,c0)
+        |                      |
+        |x0                    |l
+        |                      |
+        v                      v
+      (x,x1)                  vc2'
+      
+    *)
+    
+    (* Skipping.. rest similar to earlier part of the 
+       proof *)
     eapply one_step in H0; eauto.
     first_order; subst.
     invert H0.
     eapply IHn in H3; eauto.
     first_order.
-    eauto 8.
+    info_eauto 8.
     eapply deterministic in H; eauto.
     first_order; subst.
     eauto 6.
@@ -814,7 +963,14 @@ Section simulation_skipping.
       silent_cstep^* vc (v, Skip)
       -> generate vc [None].
   Proof.
-    clear; induct 1; eauto.
+    clear.
+    induct 1.
+    constructor.
+    eapply GenSilent.
+    eassumption.
+    eassumption.
+  Restart.
+    induct 1; eauto.
   Qed.
 
   Hint Resolve step_to_termination : core.
@@ -828,7 +984,19 @@ Section simulation_skipping.
     cases vc1.
     assert (c = Skip \/ exists v' l c', cstep (v0, c) l (v', c')) by apply skip_or_step.
     first_order; subst.
-    eauto.
+    eexists.
+    eapply TrcRefl.
+
+    (* See [H] and [H0]
+      
+      (v0,c)------R(0)------>(v,Skip)
+        |
+        |x0
+        |
+        v
+      (x,x1)
+      
+    *)
     eapply one_step in H; eauto.
     first_order.
     equality.
@@ -840,12 +1008,26 @@ Section simulation_skipping.
     assert (c = Skip \/ exists v' l c', cstep (v0, c) l (v', c')) by apply skip_or_step.
     first_order; subst.
     eauto.
+    (* See [H] and [H0]
+      
+      (v0,c)------R(n+1)------>(v,Skip)
+        |
+        |x0
+        |
+        v
+      (x,x1)
+      
+    *)
     eapply one_step in H; eauto.
+    clear one_step.
     first_order; subst.
     invert H.
     apply IHn in H2.
     first_order.
-    eauto.
+    eexists.
+    eapply TrcFront.
+    eassumption.
+    eassumption.
     invert H.
     invert H4.
     invert H5.
@@ -859,15 +1041,148 @@ Section simulation_skipping.
 
     cases vc1.
     apply R_Skip in H; first_order.
-    eauto.
+    Check step_to_termination.
+    eapply step_to_termination.
+    eassumption.
 
+    (* See [H], [H0] and [H1] 
+       
+       vc1---R(n)--->vc
+                      |
+                      |None
+                      |
+                      v
+                     vc'
+     
+     H0: generate vc' ns
+     
+     To Show: generate vc1 ns
+    *)
     eapply match_step in H1; eauto.
     first_order.
-    eauto.
+    clear one_step; clear agree_on_termination.
 
+    (* See [H], [H0], [H1], [H2], [H3]
+       
+       vc1---R(n)---->vc
+        |             |
+        |None*        |None
+        |             |
+        v             |
+        x             |
+        |             |
+        |None         |
+        |             |
+        v             v
+        x0---R(x1)--->vc'
+     
+     H0: generate vc' ns
+     
+     To Show: generate vc1 ns
+    *)
+    Check silent_generate_bwd.
+    eapply silent_generate_bwd.
+    eassumption.
+    (* See [H], [H0], [H1], [H2], [H3]
+       
+       vc1---R(n)---->vc
+        |             |
+        |None*        |None
+        |             |
+        v             |
+        x             |
+        |             |
+        |None         |
+        |             |
+        v             v
+        x0---R(x1)--->vc'
+     
+     H0: generate vc' ns
+     
+     To Show: generate x ns
+    *)
+    eapply GenSilent.
+    eassumption.
+    (* See [H], [H0], [H1], [H2], [H3]
+       
+       vc1---R(n)---->vc
+        |             |
+        |None*        |None
+        |             |
+        v             |
+        x             |
+        |             |
+        |None         |
+        |             |
+        v             v
+        x0---R(x1)--->vc'
+     
+     H0: generate vc' ns
+     
+     To Show: generate x0 ns
+    *)
+    eapply IHgenerate.
+    eassumption.
+
+    (* See [H], [H0] and [H1] 
+       
+       vc1---R(n0)--->vc
+                      |
+                      |Some(n)
+                      |
+                      v
+                     vc'
+     
+     H0: generate vc' ns
+     
+     To Show: generate vc1 ns
+    *)
     eapply match_step in H1; eauto.
     first_order.
-    eauto.
+    clear one_step; clear agree_on_termination.
+
+    (* See [H], [H0], [H1], [H2], [H3]
+       
+       vc1---R(n)---->vc
+        |             |
+        |None*        |Some(n)
+        |             |
+        v             |
+        x             |
+        |             |
+        |Some(n)      |
+        |             |
+        v             v
+        x0---R(x1)--->vc'
+     
+     H0: generate vc' ns
+     
+     To Show: generate vc1 (Some n::ns)
+    *)
+    eapply silent_generate_bwd.
+    eassumption.
+    (* See [H], [H0], [H1], [H2], [H3]
+       
+       vc1---R(n)---->vc
+        |             |
+        |None*        |Some(n)
+        |             |
+        v             |
+        x             |
+        |             |
+        |Some(n)      |
+        |             |
+        v             v
+        x0---R(x1)--->vc'
+     
+     H0: generate vc' ns
+     
+     To Show: generate x (Some n::ns)
+    *)
+    eapply GenOutput.
+    eassumption.
+    eapply IHgenerate.
+    eassumption.
   Qed.
 
   Theorem simulation_skipping_bwd : forall n vc1 vc2, R n vc1 vc2
@@ -902,6 +1217,17 @@ Fixpoint countIfs (c : cmd) : nat :=
   | Output _ => 0
   end.
 
+
+Lemma cfold_ok'' : forall v1 c1 l v2 c2,
+    step0 (v1, c1) l (v2, c2)
+    -> step0 (v1, cfold c1) l (v2, cfold c2).
+Proof.
+Abort.
+
+Compute cfold (when 1%arith then 
+                 when "x" then Skip else Skip done
+               else Skip done).
+
 (* Our notion of [step0] porting must now allow some skipped steps, also showing
  * that they decrease [If] count. *)
 Lemma cfold_ok' : forall v1 c1 l v2 c2,
@@ -911,22 +1237,27 @@ Lemma cfold_ok' : forall v1 c1 l v2 c2,
 Proof.
   invert 1; simplify;
     try match goal with
-        | [ _ : context[interp ?e ?v] |- _ ] => rewrite <- (cfoldArith_ok v e) in *
-        | [ |- context[interp ?e ?v] ] => rewrite <- (cfoldArith_ok v e)
+        | [ _ : context[interp ?e ?v] |- _ ] => 
+          rewrite <- (cfoldArith_ok v e) in *
+        | [ |- context[interp ?e ?v] ] => 
+          rewrite <- (cfoldArith_ok v e)
         end;
     repeat match goal with
-           | [ |- context[match ?E with _ => _ end] ] => cases E; subst; simplify
+           | [ |- context[match ?E with _ => _ end] ] => 
+             cases E; subst; simplify
            end; propositional; eauto.
 Qed.
 
 (* Now some fiddling with contexts: *)
 
+(* [cfold] can be applied over contexts. Skipping.. *)
 Fixpoint cfoldContext (C : context) : context :=
   match C with
   | Hole => Hole
   | CSeq C c => CSeq (cfoldContext C) (cfold c)
   end.
 
+(* Relate plugging a context with [cfold] and [cfoldContext] *)
 Lemma plug_cfold1 : forall C c1 c2, plug C c1 c2
   -> plug (cfoldContext C) (cfold c1) (cfold c2).
 Proof.
@@ -935,6 +1266,9 @@ Qed.
 
 Hint Resolve plug_cfold1 : core.
 
+(* If two expressions are the same if [cfold]ed, 
+   then plugging them in the same context and 
+   folding them would produce the same expressions *)
 Lemma plug_samefold : forall C c1 c1',
     plug C c1 c1'
     -> forall c2 c2', plug C c2 c2'
@@ -947,6 +1281,7 @@ Qed.
 
 Hint Resolve plug_samefold : core.
 
+(* Lifting [countIfs] to plug *)
 Lemma plug_countIfs : forall C c1 c1',
     plug C c1 c1'
     -> forall c2 c2', plug C c2 c2'
@@ -974,12 +1309,14 @@ Lemma cfold_ok : forall v c,
 Proof.
   simplify.
   (* Note the use of [countIfs] in the simulation relation. *)
-  apply simulation_skipping with (R := fun n vc1 vc2 => fst vc1 = fst vc2
-                                                        /\ snd vc2 = cfold (snd vc1)
-                                                        /\ countIfs (snd vc1) < n)
-                                   (n := S (countIfs c));
+  apply simulation_skipping with 
+    (n := S (countIfs c))
+    (R := fun n vc1 vc2 => fst vc1 = fst vc2
+                           /\ snd vc2 = cfold (snd vc1)
+                           /\ countIfs (snd vc1) < n);
     simplify; propositional; auto.
 
+  (* Skipping rest of the proof as it is straight-forward *)
   invert H0; simplify; subst.
   apply cfold_ok' in H4.
   propositional; subst.
@@ -992,6 +1329,14 @@ Proof.
   eauto.
   eauto 10.
 Qed.
+
+
+
+
+
+
+
+
 
 
 
